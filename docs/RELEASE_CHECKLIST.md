@@ -2,6 +2,15 @@
 
 This checklist records the current public release state. Mark items complete only when there is evidence for them.
 
+## Latest local validation (2026-10-30)
+
+- [x] Re-ran Buildroot `defconfig` so `BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES` points to `board/termos/vm-compat.fragment`.
+- [x] Reconfigured and rebuilt the kernel/ISO with VMware display and network drivers enabled in the final kernel config.
+- [x] Maintainer reports the resulting ISO boots in VMware; the terminal dashboard, shell, and network connectivity work.
+- [x] New local ISO SHA-256: `fdf9986af5fb7fc835e1868220385de95d3aa0bdf88672fa5a4fffec4c1336d3`.
+- [ ] Upload this newly tested ISO as a new versioned release asset and verify it by downloading it back from GitHub.
+- [ ] Update the README's release links and published checksum after the upload.
+
 ## Published status
 
 - [x] Public GitHub release exists for tag `v0.1.0`.
@@ -13,7 +22,7 @@ This checklist records the current public release state. Mark items complete onl
 
 ## Still required before promoting or redistributing the ISO more widely
 
-- [ ] Independently download the asset from the public release URL and run the checksum verification command from the README.
+- [ ] Independently download the newly published VMware-tested asset from its public release URL and run the checksum verification command from the README.
 - [ ] Review `build/legal-info/manifest.csv` and the collected license texts for all target packages and relevant host tools.
 - [ ] Identify and resolve the missing-source warnings in `build/legal-info/README`, including the Buildroot source code that was not saved in the legal-info output.
 - [ ] Confirm the applicable license terms, required notices, and corresponding-source obligations for GPL/LGPL and other third-party components.
