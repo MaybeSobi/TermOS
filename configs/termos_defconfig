@@ -25,5 +25,3 @@ BR2_TARGET_GRUB2=y
 BR2_TARGET_GRUB2_X86_64_EFI=y
 BR2_TARGET_GRUB2_BUILTIN_MODULES_EFI="boot linux ext2 fat squash4 part_msdos part_gpt normal configfile efi_gop iso9660"
 BR2_TARGET_GRUB2_BUILTIN_CONFIG_EFI="../../board/termos/grub-efi.cfg"
-BR2_PACKAGE_HOST_QEMU=y
-BR2_PACKAGE_HOST_QEMU_SYSTEM_MODE=y
