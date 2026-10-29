@@ -1,0 +1,18 @@
+# TermOS VM compatibility fragment
+# Keep the EFI GOP framebuffer available during early boot, then enable
+# common virtual display and network adapters used by VMware and QEMU.
+CONFIG_EFI=y
+CONFIG_EFI_STUB=y
+CONFIG_FB=y
+CONFIG_FB_EFI=y
+CONFIG_FRAMEBUFFER_CONSOLE=y
+CONFIG_VGA_CONSOLE=y
+CONFIG_DRM=y
+CONFIG_DRM_SIMPLEDRM=y
+CONFIG_DRM_VMWGFX=y
+CONFIG_DRM_VIRTIO_GPU=y
+CONFIG_PCI=y
+CONFIG_E1000=y
+CONFIG_E1000E=y
+CONFIG_VMXNET3=y
+CONFIG_VIRTIO_NET=y
