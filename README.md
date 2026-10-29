@@ -76,9 +76,30 @@ Booting from a physical USB drive has not yet been verified. Before attempting
 it, confirm that the ISO is suitable for direct USB imaging. Writing an image
 to a USB drive can erase existing data.
 
-## Licensing
+## Licensing and binary releases
 
-TermOS includes third-party components such as Buildroot, Linux, BusyBox,
-GRUB, and Python. Each component retains its own license and redistribution
-terms. Review and include the required notices before publishing a binary
-release.
+The repository's MIT `LICENSE` applies to TermOS-authored project files; it
+does not replace the licenses of bundled third-party software. TermOS includes
+components such as Buildroot, Linux, BusyBox, GRUB, and Python, each with its
+own applicable license and redistribution conditions.
+
+Before distributing a binary ISO, generate and review Buildroot's legal
+information using the same output directory as the build:
+
+```bash
+cd src/buildroot-2025.02.19
+make O="$HOME/TermOS/build" legal-info
+```
+
+Review `build/legal-info/manifest.csv`, `build/legal-info/legal-info.txt`,
+and the generated license/source materials. A successful `legal-info` run is
+an inventory, not a substitute for checking the actual notice and corresponding
+source obligations. Do not distribute the ISO until this review is complete.
+
+See [the v0.1.0 release checklist](docs/RELEASE_CHECKLIST.md) for the remaining
+verification steps.
+
+## Release
+
+The v0.1.0 GitHub Release currently contains release notes but no ISO asset.
+Physical USB boot and real-hardware compatibility have not been verified.
