@@ -54,5 +54,13 @@ class DashboardFormattingTests(unittest.TestCase):
         self.assertRegex(uptime, r"^(?:\d+d )?\d+h \d+m$")
 
 
+    def test_dashboard_exits_cleanly_when_input_closes(self):
+        output = io.StringIO()
+        with patch("builtins.input", side_effect=EOFError):
+            with redirect_stdout(output):
+                dashboard.main()
+        self.assertIn("Dashboard input closed.", output.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()
