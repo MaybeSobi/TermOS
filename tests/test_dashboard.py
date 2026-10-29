@@ -1,7 +1,10 @@
 import importlib.util
+import io
 import re
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 
 DASHBOARD_PATH = (
@@ -15,8 +18,9 @@ DASHBOARD_PATH = (
 )
 
 spec = importlib.util.spec_from_file_location("termos_dashboard", DASHBOARD_PATH)
+if spec is None or spec.loader is None:
+    raise RuntimeError(f"Unable to load dashboard module from {DASHBOARD_PATH}")
 dashboard = importlib.util.module_from_spec(spec)
-assert spec is not None and spec.loader is not None
 spec.loader.exec_module(dashboard)
 
 
