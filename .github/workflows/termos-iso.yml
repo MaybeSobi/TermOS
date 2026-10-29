@@ -9,10 +9,20 @@ on:
       - "configs/termos_defconfig"
       - "scripts/build.sh"
       - "scripts/run-qemu.sh"
+      - "tests/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/termos-iso.yml"
+      - "board/termos/**"
+      - "configs/termos_defconfig"
+      - "scripts/build.sh"
+      - "scripts/run-qemu.sh"
+      - "tests/**"
   workflow_dispatch:
 
 concurrency:
-  group: termos-iso-${{ github.workflow }}
+  group: termos-iso-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -34,11 +44,13 @@ jobs:
             file cpio unzip wget curl xz-utils libncurses-dev libssl-dev \
             libelf-dev qemu-system-x86 ovmf xorriso
 
-      - name: Validate project scripts
+      - name: Validate project scripts and dashboard
         run: |
+          set -euo pipefail
           bash -n scripts/build.sh scripts/run-qemu.sh
           PYTHONPYCACHEPREFIX=/tmp/termos-pycache \
             python3 -m py_compile board/termos/rootfs-overlay/opt/termos/dashboard.py
+          python3 -m unittest discover -s tests -v
 
       - name: Build ISO
         env:
@@ -105,8 +117,6 @@ jobs:
           }
           trap cleanup EXIT
 
-          # The default Live entry now emits kernel messages to both VGA and
-          # serial. Let GRUB autoboot it; don't rely on brittle HMP key injection.
           BOOT_REACHED_INIT=0
           for _ in $(seq 1 45); do
             if grep -Eq 'Run /init as init process|Run /sbin/init as init process' "$SERIAL_LOG" 2>/dev/null; then
@@ -128,18 +138,18 @@ jobs:
         run: |
           mkdir -p artifact
           if [ -s build/images/rootfs.iso9660 ]; then
-            cp build/images/rootfs.iso9660 artifact/TermOS-0.1.1-ci-x86_64.iso
-            sha256sum artifact/TermOS-0.1.1-ci-x86_64.iso > artifact/SHA256SUMS
+            cp build/images/rootfs.iso9660 artifact/TermOS-CI-x86_64.iso
+            sha256sum artifact/TermOS-CI-x86_64.iso > artifact/SHA256SUMS
           fi
           if [ -f /tmp/termos-serial.log ]; then
             cp /tmp/termos-serial.log artifact/qemu-uefi-serial.log
           fi
 
       - name: Upload ISO artifact
-        if: always() && hashFiles('artifact/TermOS-0.1.1-ci-x86_64.iso') != ''
+        if: always() && hashFiles('artifact/TermOS-CI-x86_64.iso') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: TermOS-0.1.1-ci-x86_64
+          name: TermOS-CI-x86_64
           path: artifact/
           if-no-files-found: error
           retention-days: 14
