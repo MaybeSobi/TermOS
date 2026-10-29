@@ -11,6 +11,10 @@ on:
       - "scripts/run-qemu.sh"
   workflow_dispatch:
 
+concurrency:
+  group: termos-iso-${{ github.workflow }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
