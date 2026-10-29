@@ -1,0 +1,20 @@
+# Buildroot source and generated output
+/build/
+/src/
+/buildroot
+/downloads/
+/backups/
+
+# Build artifacts and local VM state
+*.iso
+*.img
+*.qcow2
+*.log
+*.tmp
+OVMF_VARS*.fd
+
+# Editor and Python caches
+__pycache__/
+*.py[cod]
+.vscode/
+.idea/
