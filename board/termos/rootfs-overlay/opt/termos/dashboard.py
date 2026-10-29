@@ -203,3 +203,5 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print(color("\n\nDashboard interrupted.", YELLOW))
+    except EOFError:
+        print(color("\n\nDashboard input closed.", YELLOW))
