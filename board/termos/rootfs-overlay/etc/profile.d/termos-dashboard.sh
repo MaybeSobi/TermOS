@@ -1,5 +1,7 @@
 # TermOS interactive dashboard autostart
 if [ -n "${PS1:-}" ] &&
+   [ -t 0 ] &&
+   [ -t 1 ] &&
    [ -z "${TERMOS_DASHBOARD_STARTED:-}" ] &&
    [ -x /usr/bin/python3 ] &&
    [ -f /opt/termos/dashboard.py ]; then
