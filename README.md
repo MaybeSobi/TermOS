@@ -16,7 +16,7 @@ A small, Buildroot-based Linux system with a Python dashboard, an interactive sh
 </div>
 
 > [!WARNING]
-> **TermOS 0.1.0 is an experimental preview, not a production operating system.** UEFI boot and networking have been tested in QEMU. Physical USB boot and compatibility with real hardware remain unverified.
+> **TermOS is an experimental preview, not a production operating system.** UEFI boot, the terminal dashboard, shell, and networking have been tested in QEMU and VMware. Physical USB boot and compatibility with real hardware remain unverified.
 
 > [!IMPORTANT]
 > The v0.1.0 ISO is currently publicly downloadable, but the third-party redistribution review is not complete. Buildroot's `legal-info` output warns that Buildroot's own source was not saved and that other material may be missing. Required source and notice obligations must be resolved before mirroring or redistributing the ISO.
@@ -35,10 +35,11 @@ A small, Buildroot-based Linux system with a Python dashboard, an interactive sh
 
 ## What's working
 
-- UEFI boot in QEMU
+- UEFI boot in QEMU and VMware
 - Python terminal dashboard and interactive shell
-- VirtIO network adapter in QEMU
-- DHCP, DNS resolution, and outbound IP connectivity in QEMU
+- VirtIO networking in QEMU
+- VMware virtual networking and internet connectivity in VMware
+- DHCP, DNS resolution, and outbound connectivity have been observed in virtual machines
 
 ### Known limitations
 
@@ -49,9 +50,11 @@ A small, Buildroot-based Linux system with a Python dashboard, an interactive sh
 
 ## Download the preview
 
-Get the ISO from the [**TermOS v0.1.0 release page**](https://github.com/MaybeSobi/TermOS/releases/tag/v0.1.0).
+Get the currently published ISO from the [**TermOS v0.1.0 release page**](https://github.com/MaybeSobi/TermOS/releases/tag/v0.1.0).
 
-The release asset is currently stored on GitHub as `rootfs.iso9660`. The commands below download it with a more descriptive local filename and verify its SHA-256 checksum.
+**Important:** the newly tested VMware-compatible build has been verified locally, but has not yet been uploaded as a new release asset. Do not assume the existing v0.1.0 download is identical to that build. The new local image's SHA-256 is `fdf9986af5fb7fc835e1868220385de95d3aa0bdf88672fa5a4fffec4c1336d3`; the release page must be updated after the new image is published.
+
+The existing v0.1.0 release asset is currently stored on GitHub as `rootfs.iso9660`. The commands below download it with a more descriptive local filename and verify its SHA-256 checksum.
 
 ```bash
 curl -fL \
