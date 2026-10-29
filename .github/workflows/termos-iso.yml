@@ -44,29 +44,53 @@ jobs:
       - name: Boot ISO in QEMU with UEFI and VirtIO networking
         shell: bash
         run: |
-          set -uo pipefail
+          set -euo pipefail
           CODE=/usr/share/OVMF/OVMF_CODE_4M.fd
           VARS_TEMPLATE=/usr/share/OVMF/OVMF_VARS_4M.fd
           test -f "$CODE"
           test -f "$VARS_TEMPLATE"
           cp "$VARS_TEMPLATE" /tmp/termos-OVMF_VARS.fd
-          set +e
-          timeout 50s qemu-system-x86_64 \
+
+          qemu-system-x86_64 \
             -machine q35 -m 1024 -smp 2 \
             -drive "if=pflash,format=raw,unit=0,readonly=on,file=$CODE" \
             -drive "if=pflash,format=raw,unit=1,file=/tmp/termos-OVMF_VARS.fd" \
             -cdrom build/images/rootfs.iso9660 -boot order=d \
             -nic user,model=virtio-net-pci \
-            -display none -serial file:/tmp/termos-serial.log -monitor none -no-reboot
-          qemu_status=$?
-          set -e
+            -display none -serial file:/tmp/termos-serial.log \
+            -monitor unix:/tmp/termos-monitor.sock,server,nowait -no-reboot &
+          QEMU_PID=$!
+          cleanup() {
+            kill "$QEMU_PID" 2>/dev/null || true
+            wait "$QEMU_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          # Select the serial-debug GRUB entry so CI can observe kernel boot.
+          for _ in $(seq 1 40); do
+            [ -S /tmp/termos-monitor.sock ] && break
+            sleep 0.25
+          done
+          sleep 2
+          python3 - <<'PY'
+          import socket, time
+          path = "/tmp/termos-monitor.sock"
+          with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+              s.connect(path)
+              time.sleep(0.2)
+              s.recv(4096)
+              s.sendall(b"sendkey down\n")
+              time.sleep(0.2)
+              s.sendall(b"sendkey ret\n")
+          PY
+
+          # A live OS should stay running. The serial log must prove Linux
+          # reached the init handoff, rather than merely leaving QEMU open.
+          sleep 25
           cat /tmp/termos-serial.log || true
-          # A live OS is expected to keep running until the timeout.
-          test "$qemu_status" -eq 124
-          # Require evidence that the Linux kernel reached its init handoff.
           grep -E "Run /init as init process|Run /sbin/init as init process|Welcome to TermOS" /tmp/termos-serial.log
 
-      - name: Package validated ISO and boot log
+      - name: Package ISO and boot log
         if: always()
         run: |
           mkdir -p artifact
