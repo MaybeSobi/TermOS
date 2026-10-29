@@ -1,46 +1,50 @@
-# TermOS 0.1.0 Release Checklist
+# TermOS 0.1.0 — Release and Validation Checklist
 
-This checklist separates checks already reported as passing from checks that still require evidence. Do not mark a check complete without recording its result.
+This checklist records the current public release state. Mark items complete only when there is evidence for them.
 
-## Confirmed for v0.1.0
+## Published status
 
 - [x] Public GitHub release exists for tag `v0.1.0`.
-- [x] Release notes describe the project as experimental.
-- [x] README documents the build and QEMU runner commands.
+- [x] Release describes TermOS as an experimental preview.
+- [x] ISO asset is attached to the release.
+- [x] GitHub reports the asset SHA-256 as `cb6d60f6dacee9ec65d4f4681bace1f5f2971673087f318dcfe5b9383e7628f7`, matching the SHA-256 recorded locally for the published ISO.
 - [x] UEFI boot, dashboard, shell, and VirtIO networking were tested in QEMU (per the project test record).
+- [x] Buildroot `legal-info` was generated using the same build output directory.
 
-## Still required before distributing the ISO
+## Still required before promoting or redistributing the ISO more widely
 
-- [ ] Run Buildroot's `legal-info` target from the same output directory used for the image build.
-- [ ] Review `build/legal-info/manifest.csv` and the generated license texts for every included target package and relevant host package.
-- [ ] Confirm the applicable source-code and notice obligations for GPL/LGPL and other licenses, including how corresponding source will be provided where required.
-- [ ] Include the required notices and source-availability information with any binary distribution.
-- [ ] Rebuild or identify the exact ISO intended for release, then calculate its SHA-256.
-- [ ] Boot-test that exact ISO in QEMU after the final build.
-- [ ] Upload the ISO and checksum to the GitHub release only after the licensing review is complete.
-- [ ] Verify the uploaded asset and checksum by downloading the asset or checking its published metadata.
+- [ ] Independently download the asset from the public release URL and run the checksum verification command from the README.
+- [ ] Review `build/legal-info/manifest.csv` and the collected license texts for all target packages and relevant host tools.
+- [ ] Identify and resolve the missing-source warnings in `build/legal-info/README`, including the Buildroot source code that was not saved in the legal-info output.
+- [ ] Confirm the applicable license terms, required notices, and corresponding-source obligations for GPL/LGPL and other third-party components.
+- [ ] Prepare and publish the required notices and source-availability information where applicable.
+- [ ] Record the review outcome and the source/notice location before encouraging wider redistribution.
+
+**Current caveat:** The ISO is already publicly downloadable. The third-party redistribution review is not complete, and the Buildroot legal-info output contains warnings about missing material. Do not treat the generated inventory as legal approval or mirror/redistribute the ISO until the applicable obligations have been reviewed and resolved.
 
 ## Optional but recommended
 
-- [ ] Test booting from USB on real hardware. This has not yet been verified.
-- [ ] Record host environment, test date, QEMU command, and any known limitations.
+- [ ] Test booting from USB on real hardware.
+- [ ] Test on additional physical hardware and record any compatibility issues.
+- [ ] Record the host environment, test date, QEMU command, and observed results.
 
-## Buildroot legal-info commands
+## Reproduce Buildroot legal information
 
-From the Buildroot source directory, using the same output directory as the TermOS build:
+Run this from the Buildroot source directory, using the same output directory as the TermOS build:
 
 ```bash
+cd ~/TermOS/src/buildroot-2025.02.19
 make O="$HOME/TermOS/build" legal-info
 ```
 
-Then inspect:
+Review the generated files under `$HOME/TermOS/build/legal-info/`:
 
 ```bash
+less "$HOME/TermOS/build/legal-info/README"
 less "$HOME/TermOS/build/legal-info/manifest.csv"
-less "$HOME/TermOS/build/legal-info/legal-info.txt"
 find "$HOME/TermOS/build/legal-info" -maxdepth 2 -type f | sort
 ```
 
-If your TermOS checkout is not at `$HOME/TermOS`, replace that path with the actual project directory.
+This release uses Buildroot 2025.02.19. If the TermOS checkout is not at `$HOME/TermOS`, replace that path with the actual project directory.
 
-**Important:** A successful `legal-info` build is an inventory, not a legal approval by itself. Review the generated manifest and obligations before redistributing the ISO.
+**Reminder:** A successful `legal-info` run is an inventory, not a legal-compliance certification. Review the relevant licenses and obligations before broader redistribution.
