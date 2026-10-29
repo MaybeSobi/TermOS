@@ -91,10 +91,22 @@ cd src/buildroot-2025.02.19
 make O="$HOME/TermOS/build" legal-info
 ```
 
-Review `build/legal-info/manifest.csv`, `build/legal-info/legal-info.txt`,
-and the generated license/source materials. A successful `legal-info` run is
-an inventory, not a substitute for checking the actual notice and corresponding
-source obligations. Do not distribute the ISO until this review is complete.
+Review these generated files and directories under `build/legal-info/`:
+
+- `README` for Buildroot's notes and any warnings about missing material.
+- `manifest.csv` for target packages included in the image.
+- `host-manifest.csv` for host/build tools and their license information.
+- `licenses/` and `host-licenses/` for collected license texts.
+- `sources/` and `host-sources/` for source archives, where available.
+- `buildroot.config` for the configuration used to build the image.
+
+Buildroot reports that its own source code was not saved in this legal-info
+output and must be collected manually if needed to meet applicable obligations.
+Some other source or toolchain materials may also be missing for technical
+reasons. A successful `legal-info` run is an inventory, not a guarantee that
+all redistribution requirements have been satisfied. Review the applicable
+licenses and provide required notices and corresponding source materials before
+redistributing the ISO.
 
 See [the v0.1.0 release checklist](docs/RELEASE_CHECKLIST.md) for the remaining
 verification steps.
