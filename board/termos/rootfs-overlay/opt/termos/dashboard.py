@@ -172,7 +172,11 @@ def main():
         print("  [3] Open shell")
         print("  [0] Exit dashboard")
 
-        choice = input(color("\n  termos> ", GREEN + BOLD)).strip()
+        try:
+            choice = input(color("\n  termos> ", GREEN + BOLD)).strip()
+        except EOFError:
+            print(color("\n\nDashboard input closed.", YELLOW))
+            break
 
         if choice == "1":
             continue
