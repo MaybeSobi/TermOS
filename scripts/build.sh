@@ -2,6 +2,9 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Prevent Git from detecting the parent TermOS repository as Buildroot.
+export GIT_CEILING_DIRECTORIES="$ROOT_DIR"
 BR_VERSION="2025.02.19"
 
 SRC_DIR="$ROOT_DIR/src"
