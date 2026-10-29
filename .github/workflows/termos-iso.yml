@@ -30,16 +30,49 @@ jobs:
             file cpio unzip wget curl xz-utils libncurses-dev libssl-dev \
             libelf-dev qemu-system-x86 ovmf xorriso
 
+      - name: Validate project scripts
+        run: |
+          bash -n scripts/build.sh scripts/run-qemu.sh
+          PYTHONPYCACHEPREFIX=/tmp/termos-pycache \
+            python3 -m py_compile board/termos/rootfs-overlay/opt/termos/dashboard.py
+
       - name: Build ISO
         env:
           JOBS: "2"
         run: ./scripts/build.sh
 
-      - name: Check ISO format and checksum
+      - name: Check ISO format, checksum, and required kernel drivers
+        shell: bash
         run: |
-          file build/images/rootfs.iso9660
-          test -s build/images/rootfs.iso9660
-          sha256sum build/images/rootfs.iso9660 | tee build/images/SHA256SUMS
+          set -euo pipefail
+          ISO=build/images/rootfs.iso9660
+          KERNEL_CONFIG=build/build/linux-6.12.27/.config
+
+          file "$ISO"
+          test -s "$ISO"
+          sha256sum "$ISO" | tee build/images/SHA256SUMS
+          test -s "$KERNEL_CONFIG"
+
+          for setting in \
+            CONFIG_EFI=y \
+            CONFIG_EFI_STUB=y \
+            CONFIG_FB=y \
+            CONFIG_FB_EFI=y \
+            CONFIG_FRAMEBUFFER_CONSOLE=y \
+            CONFIG_DRM=y \
+            CONFIG_DRM_SIMPLEDRM=y \
+            CONFIG_DRM_VMWGFX=y \
+            CONFIG_DRM_VIRTIO_GPU=y \
+            CONFIG_SERIAL_8250_CONSOLE=y \
+            CONFIG_E1000=y \
+            CONFIG_E1000E=y \
+            CONFIG_VMXNET3=y \
+            CONFIG_VIRTIO_NET=y; do
+            if ! grep -Fqx "$setting" "$KERNEL_CONFIG"; then
+              echo "ERROR: required kernel setting missing from built config: $setting" >&2
+              exit 1
+            fi
+          done
 
       - name: Boot ISO in QEMU with UEFI and VirtIO networking
         shell: bash
@@ -47,9 +80,11 @@ jobs:
           set -euo pipefail
           CODE=/usr/share/OVMF/OVMF_CODE_4M.fd
           VARS_TEMPLATE=/usr/share/OVMF/OVMF_VARS_4M.fd
+          SERIAL_LOG=/tmp/termos-serial.log
           test -f "$CODE"
           test -f "$VARS_TEMPLATE"
           cp "$VARS_TEMPLATE" /tmp/termos-OVMF_VARS.fd
+          rm -f "$SERIAL_LOG"
 
           qemu-system-x86_64 \
             -machine q35 -m 1024 -smp 2 \
@@ -57,8 +92,8 @@ jobs:
             -drive "if=pflash,format=raw,unit=1,file=/tmp/termos-OVMF_VARS.fd" \
             -cdrom build/images/rootfs.iso9660 -boot order=d \
             -nic user,model=virtio-net-pci \
-            -display none -serial file:/tmp/termos-serial.log \
-            -monitor unix:/tmp/termos-monitor.sock,server,nowait -no-reboot &
+            -display none -serial "file:$SERIAL_LOG" -monitor none \
+            -no-reboot &
           QEMU_PID=$!
           cleanup() {
             kill "$QEMU_PID" 2>/dev/null || true
@@ -66,47 +101,41 @@ jobs:
           }
           trap cleanup EXIT
 
-          # Select the serial-debug GRUB entry so CI can observe kernel boot.
-          for _ in $(seq 1 40); do
-            [ -S /tmp/termos-monitor.sock ] && break
-            sleep 0.25
+          # The default Live entry now emits kernel messages to both VGA and
+          # serial. Let GRUB autoboot it; don't rely on brittle HMP key injection.
+          BOOT_REACHED_INIT=0
+          for _ in $(seq 1 45); do
+            if grep -Eq 'Run /init as init process|Run /sbin/init as init process' "$SERIAL_LOG" 2>/dev/null; then
+              BOOT_REACHED_INIT=1
+              break
+            fi
+            sleep 1
           done
-          sleep 2
-          python3 - <<'PY'
-          import socket, time
-          path = "/tmp/termos-monitor.sock"
-          with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
-              s.connect(path)
-              time.sleep(0.2)
-              s.recv(4096)
-              s.sendall(b"sendkey down\n")
-              time.sleep(0.2)
-              s.sendall(b"sendkey ret\n")
-          PY
 
-          # A live OS should stay running. The serial log must prove Linux
-          # reached the init handoff, rather than merely leaving QEMU open.
-          sleep 25
-          cat /tmp/termos-serial.log || true
-          grep -E "Run /init as init process|Run /sbin/init as init process|Welcome to TermOS" /tmp/termos-serial.log
+          echo "----- QEMU UEFI serial log -----"
+          cat "$SERIAL_LOG" || true
+          if [[ "$BOOT_REACHED_INIT" != 1 ]]; then
+            echo "ERROR: ISO did not reach the init process within 45 seconds." >&2
+            exit 1
+          fi
 
       - name: Package ISO and boot log
         if: always()
         run: |
           mkdir -p artifact
           if [ -s build/images/rootfs.iso9660 ]; then
-            cp build/images/rootfs.iso9660 artifact/TermOS-0.1.1-vmfix-x86_64.iso
-            sha256sum artifact/TermOS-0.1.1-vmfix-x86_64.iso > artifact/SHA256SUMS
+            cp build/images/rootfs.iso9660 artifact/TermOS-0.1.1-ci-x86_64.iso
+            sha256sum artifact/TermOS-0.1.1-ci-x86_64.iso > artifact/SHA256SUMS
           fi
           if [ -f /tmp/termos-serial.log ]; then
             cp /tmp/termos-serial.log artifact/qemu-uefi-serial.log
           fi
 
       - name: Upload ISO artifact
-        if: always() && hashFiles('artifact/TermOS-0.1.1-vmfix-x86_64.iso') != ''
+        if: always() && hashFiles('artifact/TermOS-0.1.1-ci-x86_64.iso') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: TermOS-0.1.1-vmfix-x86_64
+          name: TermOS-0.1.1-ci-x86_64
           path: artifact/
           if-no-files-found: error
           retention-days: 14
