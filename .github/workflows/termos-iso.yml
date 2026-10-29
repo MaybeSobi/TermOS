@@ -1,0 +1,88 @@
+name: Build and validate TermOS ISO
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/termos-iso.yml"
+      - "board/termos/**"
+      - "configs/termos_defconfig"
+      - "scripts/build.sh"
+      - "scripts/run-qemu.sh"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-boot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out TermOS
+        uses: actions/checkout@v4
+
+      - name: Install build and VM test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential bc bison flex gawk git patch perl python3 rsync \
+            file cpio unzip wget curl xz-utils libncurses-dev libssl-dev \
+            libelf-dev qemu-system-x86 ovmf xorriso
+
+      - name: Build ISO
+        env:
+          JOBS: "2"
+        run: ./scripts/build.sh
+
+      - name: Check ISO format and checksum
+        run: |
+          file build/images/rootfs.iso9660
+          test -s build/images/rootfs.iso9660
+          sha256sum build/images/rootfs.iso9660 | tee build/images/SHA256SUMS
+
+      - name: Boot ISO in QEMU with UEFI and VirtIO networking
+        shell: bash
+        run: |
+          set -uo pipefail
+          CODE=/usr/share/OVMF/OVMF_CODE_4M.fd
+          VARS_TEMPLATE=/usr/share/OVMF/OVMF_VARS_4M.fd
+          test -f "$CODE"
+          test -f "$VARS_TEMPLATE"
+          cp "$VARS_TEMPLATE" /tmp/termos-OVMF_VARS.fd
+          set +e
+          timeout 50s qemu-system-x86_64 \
+            -machine q35 -m 1024 -smp 2 \
+            -drive "if=pflash,format=raw,unit=0,readonly=on,file=$CODE" \
+            -drive "if=pflash,format=raw,unit=1,file=/tmp/termos-OVMF_VARS.fd" \
+            -cdrom build/images/rootfs.iso9660 -boot order=d \
+            -nic user,model=virtio-net-pci \
+            -display none -serial file:/tmp/termos-serial.log -monitor none -no-reboot
+          qemu_status=$?
+          set -e
+          cat /tmp/termos-serial.log || true
+          # A live OS is expected to keep running until the timeout.
+          test "$qemu_status" -eq 124
+          # Require evidence that the Linux kernel reached its init handoff.
+          grep -E "Run /init as init process|Run /sbin/init as init process|Welcome to TermOS" /tmp/termos-serial.log
+
+      - name: Package validated ISO and boot log
+        if: always()
+        run: |
+          mkdir -p artifact
+          if [ -s build/images/rootfs.iso9660 ]; then
+            cp build/images/rootfs.iso9660 artifact/TermOS-0.1.1-vmfix-x86_64.iso
+            sha256sum artifact/TermOS-0.1.1-vmfix-x86_64.iso > artifact/SHA256SUMS
+          fi
+          if [ -f /tmp/termos-serial.log ]; then
+            cp /tmp/termos-serial.log artifact/qemu-uefi-serial.log
+          fi
+
+      - name: Upload ISO artifact
+        if: always() && hashFiles('artifact/TermOS-0.1.1-vmfix-x86_64.iso') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: TermOS-0.1.1-vmfix-x86_64
+          path: artifact/
+          if-no-files-found: error
+          retention-days: 14
