@@ -10,6 +10,10 @@ on:
       - "scripts/build.sh"
       - "scripts/run-qemu.sh"
       - "tests/**"
+      - "tpm/**"
+      - "docs/**"
+      - "README.md"
+      - "LICENSE"
   pull_request:
     branches: [main]
     paths:
@@ -19,6 +23,10 @@ on:
       - "scripts/build.sh"
       - "scripts/run-qemu.sh"
       - "tests/**"
+      - "tpm/**"
+      - "docs/**"
+      - "README.md"
+      - "LICENSE"
   workflow_dispatch:
 
 concurrency:
@@ -31,7 +39,7 @@ permissions:
 jobs:
   build-and-boot:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 180
     steps:
       - name: Check out TermOS
         uses: actions/checkout@v4
@@ -42,7 +50,26 @@ jobs:
           sudo apt-get install -y \
             build-essential bc bison flex gawk git patch perl python3 rsync \
             file cpio unzip wget curl xz-utils libncurses-dev libssl-dev \
-            libelf-dev qemu-system-x86 ovmf xorriso
+            libelf-dev qemu-system-x86 ovmf xorriso python3-pytest
+
+      # Cache source downloads independently from the complete Buildroot output.
+      # The output cache must include build/target as well as build stamps: restoring
+      # build stamps without the target filesystem makes incremental builds invalid.
+      - name: Cache Buildroot downloads and sources
+        uses: actions/cache@v4
+        with:
+          path: |
+            downloads/
+            src/buildroot-2025.02.19/
+          key: termos-sources-${{ runner.os }}-buildroot-2025.02.19
+          restore-keys: |
+            termos-sources-${{ runner.os }}-buildroot-2025.02.19
+
+      - name: Cache complete Buildroot output
+        uses: actions/cache@v4
+        with:
+          path: build/
+          key: termos-output-v2-${{ runner.os }}-buildroot-2025.02.19-${{ hashFiles('configs/termos_defconfig', 'board/termos/linux.config', 'board/termos/vm-compat.fragment', 'board/termos/rootfs-overlay/**') }}
 
       - name: Validate project scripts and dashboard
         run: |
@@ -51,11 +78,21 @@ jobs:
           PYTHONPYCACHEPREFIX=/tmp/termos-pycache \
             python3 -m py_compile board/termos/rootfs-overlay/opt/termos/dashboard.py
           python3 -m unittest discover -s tests -v
+          python3 -m pytest -q tpm/tests
 
       - name: Build ISO
         env:
           JOBS: "2"
         run: ./scripts/build.sh
+
+      # Produce Buildroot's license/source inventory for human review before
+      # publishing or redistributing the ISO. This is evidence, not legal approval.
+      - name: Generate Buildroot legal information
+        run: |
+          set -euo pipefail
+          make -C src/buildroot-2025.02.19 O="$PWD/build" legal-info
+          test -s build/legal-info/README
+          test -s build/legal-info/manifest.csv
 
       - name: Check ISO format, checksum, and required kernel drivers
         shell: bash
@@ -133,7 +170,7 @@ jobs:
             exit 1
           fi
 
-      - name: Package ISO and boot log
+      - name: Package ISO, boot log, and legal information
         if: always()
         run: |
           mkdir -p artifact
@@ -144,8 +181,11 @@ jobs:
           if [ -f /tmp/termos-serial.log ]; then
             cp /tmp/termos-serial.log artifact/qemu-uefi-serial.log
           fi
+          if [ -d build/legal-info ]; then
+            tar -czf artifact/TermOS-legal-info.tar.gz -C build legal-info
+          fi
 
-      - name: Upload ISO artifact
+      - name: Upload ISO and legal review artifacts
         if: always() && hashFiles('artifact/TermOS-CI-x86_64.iso') != ''
         uses: actions/upload-artifact@v4
         with:

@@ -1,0 +1,192 @@
+#!/usr/bin/python3
+"""TermOS TPM launcher with a guarded live-system mode."""
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+import tarfile
+from pathlib import Path
+
+PYTHON_ROOT = "/opt/termos/python"
+PUBLIC_KEY_DEFAULT = "/etc/termos/repository-ed25519.pub"
+PYTHON = "/usr/bin/python3"
+
+
+def fail(message, code=2):
+    print(f"tpm: error: {message}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def option_values(args, option):
+    values = []
+    index = 0
+    while index < len(args):
+        item = args[index]
+        if item == option:
+            if index + 1 >= len(args):
+                fail(f"{option} requires a value")
+            values.append(args[index + 1])
+            index += 2
+            continue
+        if item.startswith(option + "="):
+            values.append(item.split("=", 1)[1])
+        index += 1
+    return values
+
+
+def remove_option_pairs(args, options):
+    result = []
+    index = 0
+    while index < len(args):
+        item = args[index]
+        matched = False
+        for option in options:
+            if item == option:
+                if index + 1 >= len(args):
+                    fail(f"{option} requires a value")
+                index += 2
+                matched = True
+                break
+            if item.startswith(option + "="):
+                index += 1
+                matched = True
+                break
+        if not matched:
+            result.append(item)
+            index += 1
+    return result
+
+
+def read_package_identity(package_path):
+    path = Path(package_path).expanduser().resolve(strict=True)
+    if not path.is_file():
+        fail(f"Package is not a regular file: {path}")
+    try:
+        with tarfile.open(path, mode="r:") as archive:
+            member = archive.getmember("manifest.json")
+            if not member.isfile() or member.size > 4 * 1024 * 1024:
+                fail("Package manifest is invalid or too large")
+            stream = archive.extractfile(member)
+            if stream is None:
+                fail("Cannot read package manifest")
+            manifest = json.loads(stream.read().decode("utf-8"))
+    except (OSError, tarfile.TarError, KeyError, UnicodeError, json.JSONDecodeError) as exc:
+        fail(f"Cannot inspect package: {exc}")
+    name = manifest.get("name")
+    version = manifest.get("version")
+    if not isinstance(name, str) or not isinstance(version, str):
+        fail("Package manifest has no valid name/version")
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return path, name, version, digest.hexdigest()
+
+
+def verify_package_is_in_signed_repo(package_path, args, public_key):
+    repos = option_values(args, "--repo")
+    if not repos:
+        fail("System install/upgrade requires at least one signed --repo")
+    if not Path(public_key).is_file():
+        fail(f"Trusted repository public key is missing: {public_key}")
+    path, name, version, digest = read_package_identity(package_path)
+    for repo in repos:
+        command = [PYTHON, "-m", "tpm", "search", name,
+                   "--repo", repo, "--public-key", public_key]
+        result = subprocess.run(
+            command,
+            env=os.environ.copy(),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+        output = result.stdout or ""
+        identity_line = re.compile(
+            rf"(?m)^{re.escape(name)}\s+{re.escape(version)}\s+\["
+        )
+        archive_line = re.compile(
+            rf"(?m)^\s*archive:\s*{re.escape(path.name)}\s+sha256:\s*{re.escape(digest)}\s*$"
+        )
+        if result.returncode == 0 and identity_line.search(output) and archive_line.search(output):
+            return path, name, version
+    fail(
+        f"Package {path.name} {version} is not present in any supplied, "
+        "signature-verified repository with the exact signed SHA-256"
+    )
+
+
+def main():
+    args = list(sys.argv[1:])
+    existing_pythonpath = os.environ.get("PYTHONPATH", "")
+    os.environ["PYTHONPATH"] = PYTHON_ROOT + (
+        os.pathsep + existing_pythonpath if existing_pythonpath else ""
+    )
+    env = os.environ.copy()
+
+    if "--system" not in args:
+        os.execve(PYTHON, [PYTHON, "-m", "tpm", *args], env)
+
+    args.remove("--system")
+    if not args:
+        fail("Usage: tpm <install|remove|upgrade|list|verify> ... --system")
+
+    command = args[0]
+    allowed = {"install", "remove", "upgrade", "list", "verify"}
+    if command not in allowed:
+        fail("--system is supported only for install, remove, upgrade, list, and verify")
+    if any(item == "--root" or item.startswith("--root=") for item in args):
+        fail("Do not combine --system with --root")
+    if os.geteuid() != 0:
+        fail("System-root operations require root privileges")
+
+    marker = Path("/etc/termos-release")
+    try:
+        marker_info = marker.lstat()
+        marker_lines = marker.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        fail(f"Cannot validate /etc/termos-release: {exc}")
+    import stat
+    if not stat.S_ISREG(marker_info.st_mode) or stat.S_ISLNK(marker_info.st_mode):
+        fail("/etc/termos-release must be a regular file")
+    if "ID=termos" not in marker_lines:
+        fail("This system is not identified as TermOS; refusing system-root operation")
+
+    package_identity = None
+    if command in ("install", "upgrade"):
+        if len(args) < 2:
+            fail(f"Usage: tpm {command} PACKAGE --system --repo DIR")
+        public_keys = option_values(args, "--repo-key")
+        public_key = public_keys[0] if public_keys else PUBLIC_KEY_DEFAULT
+        package_path, package_name, package_version = verify_package_is_in_signed_repo(
+            args[1], args, public_key
+        )
+        package_identity = f"{package_name}-{package_version}"
+        if command == "install" and not public_keys:
+            args.extend(["--repo-key", public_key])
+        # The current upgrade subcommand accepts only package and --root; the
+        # signed repository has already been verified by the search operation.
+        if command == "upgrade":
+            args = [args[0], str(package_path), *remove_option_pairs(args[2:], ("--repo", "--repo-key"))]
+
+    if command in ("install", "remove", "upgrade"):
+        target = package_identity or (args[1] if len(args) > 1 else "package")
+        phrase = f"CONFIRM {command.upper()} {target}"
+        print("WARNING: this modifies the active TermOS system root (/).")
+        print("On an ISO/live boot, filesystem changes may not survive reboot.")
+        try:
+            answer = input(f"Type exactly '{phrase}' to continue: ").strip()
+        except EOFError:
+            fail("No confirmation received")
+        if answer != phrase:
+            fail("Confirmation did not match; no system changes were made", 1)
+
+    env["TPM_ALLOW_SYSTEM_ROOT"] = "1"
+    command_args = [*args, "--root", "/"]
+    os.execve(PYTHON, [PYTHON, "-m", "tpm", *command_args], env)
+
+
+if __name__ == "__main__":
+    main()
