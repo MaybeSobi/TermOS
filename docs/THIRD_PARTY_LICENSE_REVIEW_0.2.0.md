@@ -31,6 +31,26 @@ WARNING: the Buildroot source code has not been saved
 
 This warning must be considered alongside the actual README and manifests. Buildroot is the build system; it is not automatically a package shipped in the target ISO. The exact build sources, patches, configuration, and scripts needed to satisfy source obligations for distributed copyleft components still require individual verification.
 
+
+## 3A. Selected upstream Buildroot recipe declarations
+
+The following are declarations in the Buildroot 2025.02.19 package recipes for components identified in the v0.2.0 legal-info collection log. They are a useful cross-check, not a substitute for the exact target manifest or inspection of each source tree.
+
+| Component | Version in CI log | Buildroot recipe license declaration | Review note |
+|---|---:|---|---|
+| Linux kernel | 6.12.27 | GPL-2.0 | Verify the exact kernel source, applied patches, configuration, and any relevant exceptions. |
+| GRUB 2 | 2.12 | GPL-3.0+ | Copyleft source and notices must be included or clearly made available. |
+| BusyBox | 1.37.0 | GPL-2.0; bzip2-1.0.6 | Check BusyBox configuration and source; include the separately declared bzip2 license text. |
+| glibc | 2.41 snapshot | GPL-2.0+ (programs), LGPL-2.1+, BSD-3-Clause, MIT (library) | Multi-license component; do not represent the whole package with one SPDX label. |
+| OpenSSL library | 3.5.9 | Apache-2.0 | Preserve its license and required notices. |
+| Python | 3.12.15 | Python-2.0, others | The "others" declaration requires investigation of bundled components and associated license terms. |
+| zlib | 1.3.2 | Zlib | Preserve the license notice and confirm the source version. |
+| libffi | 3.4.6 | MIT | Preserve the license notice. |
+
+The CI collection log also lists `host-kmod 33`; its Buildroot recipe declares LGPL-2.1+ for the library and GPL-2.0+ for the tools. This is a host-side build dependency in the observed collection log, not evidence that kmod is included in the target ISO. The host manifest must be used to confirm the build-only classification.
+
+**Key unresolved point:** The exact `manifest.csv` and `host-manifest.csv` from the tagged build remain to be inspected. Recipe declarations can differ from the actual package contents, and package sources may contain additional separately licensed files or exceptions.
+
 ## 3. What is not yet verified
 
 The actual `manifest.csv`, `host-manifest.csv`, and complete `legal-info/README` contents have not yet been manually inspected in this review session. Therefore, this record does **not** assert that:
