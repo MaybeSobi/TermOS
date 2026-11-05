@@ -32,7 +32,7 @@ jobs:
         with:
           name: TermOS-CI-x86_64
           repository: ${{ github.repository }}
-          run-id: 42106722558
+          run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: ci-artifact
 
