@@ -20,6 +20,7 @@ on:
       - "scripts/build.sh"
       - "scripts/run-qemu.sh"
       - "tests/**"
+      - "tpm/**"
   workflow_dispatch:
 
 concurrency:
@@ -45,18 +46,24 @@ jobs:
             file cpio unzip wget curl xz-utils libncurses-dev libssl-dev \
             libelf-dev qemu-system-x86 ovmf xorriso python3-pytest
 
-      # Reuse Buildroot downloads and compiled output between workflow runs.
-      - name: Cache Buildroot sources and build output
+      # Cache source downloads independently from the complete Buildroot output.
+      # The output cache must include build/target as well as build stamps: restoring
+      # build stamps without the target filesystem makes incremental builds invalid.
+      - name: Cache Buildroot downloads and sources
         uses: actions/cache@v4
         with:
           path: |
             downloads/
             src/buildroot-2025.02.19/
-            build/build/
-            build/host/
-          key: termos-${{ runner.os }}-buildroot-2025.02.19-${{ hashFiles('configs/termos_defconfig', 'board/termos/linux.config', 'board/termos/vm-compat.fragment') }}
+          key: termos-sources-${{ runner.os }}-buildroot-2025.02.19
           restore-keys: |
-            termos-${{ runner.os }}-buildroot-2025.02.19-
+            termos-sources-${{ runner.os }}-buildroot-2025.02.19
+
+      - name: Cache complete Buildroot output
+        uses: actions/cache@v4
+        with:
+          path: build/
+          key: termos-output-v2-${{ runner.os }}-buildroot-2025.02.19-${{ hashFiles('configs/termos_defconfig', 'board/termos/linux.config', 'board/termos/vm-compat.fragment', 'board/termos/rootfs-overlay/**') }}
 
       - name: Validate project scripts and dashboard
         run: |
