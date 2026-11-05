@@ -78,7 +78,7 @@ jobs:
       - name: Validate project scripts and dashboard
         run: |
           set -euo pipefail
-          bash -n scripts/build.sh scripts/run-qemu.sh
+          bash -n scripts/build.sh scripts/run-qemu.sh scripts/assemble-source-bundle.sh
           PYTHONPYCACHEPREFIX=/tmp/termos-pycache \
             python3 -m py_compile board/termos/rootfs-overlay/opt/termos/dashboard.py
           python3 -m unittest discover -s tests -v
