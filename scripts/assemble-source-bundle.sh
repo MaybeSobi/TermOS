@@ -12,6 +12,11 @@ BUILDROOT_BASE_URL="https://buildroot.org/downloads"
 LEGAL_INFO_ARCHIVE="$ARTIFACT_DIR/TermOS-legal-info.tar.gz"
 BUNDLE_NAME="TermOS-v0.2.0-corresponding-source"
 
+if [[ -z "$ARTIFACT_DIR" || -z "$OUTPUT_DIR" ]]; then
+    echo "ERROR: usage: assemble-source-bundle.sh <ci-artifact-dir> <output-dir>" >&2
+    exit 2
+fi
+
 mkdir -p "$OUTPUT_DIR"
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIR"' EXIT
@@ -61,7 +66,8 @@ curl --fail --location --retry 3 --retry-delay 2 \
     "$BUILDROOT_BASE_URL/$BUILDROOT_ARCHIVE.sign" \
     --output "$BUNDLE_DIR/$BUILDROOT_ARCHIVE.sign"
 xz --test "$BUNDLE_DIR/$BUILDROOT_ARCHIVE"
-tar -tJf "$BUNDLE_DIR/$BUILDROOT_ARCHIVE" | grep -q "^buildroot-$BUILDROOT_VERSION/support/libtool/"
+tar -tJf "$BUNDLE_DIR/$BUILDROOT_ARCHIVE" > "$WORK_DIR/buildroot-files.txt"
+grep -Fq "buildroot-$BUILDROOT_VERSION/support/libtool/" "$WORK_DIR/buildroot-files.txt"
 
 git -C "$ROOT_DIR" archive --format=tar "$RELEASE_TAG" |
     gzip -n > "$BUNDLE_DIR/TermOS-source-$RELEASE_TAG.tar.gz"
