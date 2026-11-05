@@ -11,6 +11,9 @@ on:
       - "scripts/run-qemu.sh"
       - "tests/**"
       - "tpm/**"
+      - "docs/**"
+      - "README.md"
+      - "LICENSE"
   pull_request:
     branches: [main]
     paths:
@@ -21,6 +24,9 @@ on:
       - "scripts/run-qemu.sh"
       - "tests/**"
       - "tpm/**"
+      - "docs/**"
+      - "README.md"
+      - "LICENSE"
   workflow_dispatch:
 
 concurrency:
