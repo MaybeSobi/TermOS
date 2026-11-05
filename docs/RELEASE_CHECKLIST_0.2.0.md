@@ -1,28 +1,29 @@
 # TermOS 0.2.0 — Release readiness
 
-## Verified in CI
+## Verified in CI and on GitHub
 
-- [x] TPM pytest suite is part of the required ISO workflow.
+- [x] TPM pytest suite is included in the required ISO workflow.
 - [x] Buildroot output cache includes the complete output tree, including the target filesystem.
 - [x] ISO builds successfully.
 - [x] ISO reaches the init process in QEMU with UEFI firmware and VirtIO networking.
 - [x] ISO format, checksum generation, and required kernel driver configuration checks pass.
 - [x] TPM source modules match the corresponding copies installed in the root filesystem overlay.
 - [x] No private repository signing key is included in the reviewed TPM source tree.
+- [x] Buildroot legal-info generation completed successfully in workflow run #22 for the release commit.
+- [x] Public v0.2.0 release includes the ISO and SHA256SUMS assets; the published ISO digest matches the checksum.
 
-## Required before publishing the v0.2.0 ISO
+## Still open
 
-- [ ] Generate and inspect the Buildroot legal-info archive from the exact release build.
-- [ ] Resolve or document every missing-source warning in legal-info/README.
-- [ ] Review manifest.csv and license texts for target packages and relevant host tools.
-- [ ] Confirm required notices and corresponding-source obligations for GPL/LGPL and other third-party components.
-- [x] A repository `LICENSE` file declares the MIT License for TermOS's own code; confirm contributor ownership/coverage before relying on it.
-- [ ] Publish required notices and source-availability information where applicable.
-- [ ] Download the final release asset independently and verify its SHA-256.
-- [ ] Test booting the release ISO from USB on physical hardware, if available.
+- [ ] Inspect the exact release legal-info README, target manifest, host manifest, and collected license texts.
+- [ ] Resolve all unknown license fields and missing license-file warnings.
+- [ ] Review exact third-party license terms and package versions.
+- [ ] Verify source and patch completeness for every applicable corresponding-source obligation.
+- [ ] Collect and include Buildroot 2025.02.19 source and any required build-system patches/scripts.
+- [ ] Verify toolchain source and host-tool obligations.
+- [ ] Publish a durable source-and-notices package for the exact release.
+- [ ] Confirm contributor rights and license coverage for all TermOS-authored files.
+- [ ] Test the published ISO from USB on physical hardware.
 
 ## Release caveat
 
-The successful QEMU boot and generated legal-info inventory are not legal approval. Do not publish or encourage wider redistribution of the ISO until the missing-source warnings and applicable third-party license obligations have been reviewed and resolved.
-
-The CI artifact is a temporary test artifact, not the official v0.2.0 release.
+The successful QEMU boot and legal-info generation are build evidence, not legal approval. The v0.2.0 ISO is already published as an experimental preview, but the package-level redistribution review and durable corresponding-source publication are not complete. See [the detailed license review](THIRD_PARTY_LICENSE_REVIEW_0.2.0.md) and [the compliance checklist](COMPLIANCE_CHECKLIST_0.2.0.md).
