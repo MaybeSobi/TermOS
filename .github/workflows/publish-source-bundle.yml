@@ -17,7 +17,9 @@ jobs:
       ${{ github.event.workflow_run.conclusion == 'success' &&
           github.event.workflow_run.head_branch == 'main' &&
           contains(github.event.workflow_run.head_commit.message,
-          'docs: refresh v0.2.0 licensing and compliance review') }}
+          'docs: refresh v0.2.0 licensing and compliance review') ||
+          contains(github.event.workflow_run.head_commit.message,
+          'fix: run source bundle assembler through bash') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -39,7 +41,7 @@ jobs:
       - name: Assemble corresponding-source archive
         run: |
           set -euo pipefail
-          ./scripts/assemble-source-bundle.sh ci-artifact dist
+          bash ./scripts/assemble-source-bundle.sh ci-artifact dist
           test -s dist/TermOS-Corresponding-Source-v0.2.0.tar.gz
           test -s dist/TermOS-Corresponding-Source-v0.2.0.tar.gz.sha256
 
