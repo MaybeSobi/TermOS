@@ -1,0 +1,4 @@
+NAME=TermOS
+ID=termos
+VERSION_ID=0.1.0
+PRETTY_NAME="TermOS"

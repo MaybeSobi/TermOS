@@ -146,3 +146,29 @@ See the [v0.1.0 release checklist](docs/RELEASE_CHECKLIST.md) for the recorded s
 **TermOS is an experiment. Test carefully, verify downloads, and share feedback through GitHub issues.**
 
 </div>
+
+## TermOS Package Manager (TPM)
+
+TermOS includes an experimental Python package manager with `.tpk` packages,
+local dependency resolution, signed repository indexes (Ed25519), and a guarded
+system-root mode. See [`tpm/README.md`](tpm/README.md) and
+[`docs/TPK_FORMAT.md`](docs/TPK_FORMAT.md). Run the guest smoke test inside a
+QEMU or VMware TermOS instance with:
+
+```sh
+/usr/share/termos/tests/tpm-smoke.sh
+```
+
+To prepare a signed, harmless data-only test package pair on the host, run
+`./scripts/prepare-tpm-system-test-repo.sh`, copy the printed repository
+folder into the disposable VM, and then run:
+
+```sh
+/usr/share/termos/tests/tpm-system-root-test.sh /path/to/tpm-system-root-repo
+```
+
+The script interactively requests confirmation for live-root install, upgrade,
+and removal, and checks that the test package is removed at the end.
+
+System-root package operations are root-only, require a signed repository and
+explicit confirmation, and may not persist across reboot in live-ISO mode.

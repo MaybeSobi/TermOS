@@ -18,3 +18,16 @@ __pycache__/
 *.py[cod]
 .vscode/
 .idea/
+
+# TPM repository signing keys: never commit private key material.
+/keys/*private*.pem
+/keys/*private*.key
+/dist/
+
+# Local TPM test and release artifacts
+/packages/
+*.tpk
+/*.tar.gz
+/*.tar.gz.sha256
+*.bak
+.pytest_cache/
