@@ -141,10 +141,15 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifact
-          make -C src/buildroot-2025.02.19 O="$PWD/build" show-info |
-            python3 src/buildroot-2025.02.19/utils/generate-cyclonedx \
-            > artifact/TermOS-v0.2.0.cdx.json
+          make --no-print-directory -s \
+            -C src/buildroot-2025.02.19 O="$PWD/build" show-info \
+            > artifact/buildroot-show-info.json
+          python3 -m json.tool artifact/buildroot-show-info.json >/dev/null
+          python3 src/buildroot-2025.02.19/utils/generate-cyclonedx \
+            --in-file artifact/buildroot-show-info.json \
+            --out-file artifact/TermOS-v0.2.0.cdx.json
           python3 -m json.tool artifact/TermOS-v0.2.0.cdx.json >/dev/null
+          rm artifact/buildroot-show-info.json
 
       - name: Check ISO format, checksum, and required kernel drivers
         shell: bash
