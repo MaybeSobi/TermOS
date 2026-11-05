@@ -9,6 +9,7 @@ on:
       - "configs/termos_defconfig"
       - "scripts/build.sh"
       - "scripts/generate-legal-review.py"
+      - "scripts/assemble-source-bundle.sh"
       - "scripts/run-qemu.sh"
       - "tests/**"
       - "tpm/**"
@@ -23,6 +24,7 @@ on:
       - "configs/termos_defconfig"
       - "scripts/build.sh"
       - "scripts/generate-legal-review.py"
+      - "scripts/assemble-source-bundle.sh"
       - "scripts/run-qemu.sh"
       - "tests/**"
       - "tpm/**"
@@ -134,6 +136,15 @@ jobs:
             fi
           done
           echo "===== TERMOS COLLECTED LICENSE TEXTS END ====="
+
+      - name: Generate CycloneDX SBOM
+        run: |
+          set -euo pipefail
+          mkdir -p artifact
+          make -C src/buildroot-2025.02.19 O="$PWD/build" show-info |
+            python3 src/buildroot-2025.02.19/utils/generate-cyclonedx \
+            > artifact/TermOS-v0.2.0.cdx.json
+          python3 -m json.tool artifact/TermOS-v0.2.0.cdx.json >/dev/null
 
       - name: Check ISO format, checksum, and required kernel drivers
         shell: bash
