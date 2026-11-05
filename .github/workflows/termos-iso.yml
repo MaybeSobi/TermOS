@@ -31,7 +31,7 @@ permissions:
 jobs:
   build-and-boot:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 180
     steps:
       - name: Check out TermOS
         uses: actions/checkout@v4
@@ -43,6 +43,19 @@ jobs:
             build-essential bc bison flex gawk git patch perl python3 rsync \
             file cpio unzip wget curl xz-utils libncurses-dev libssl-dev \
             libelf-dev qemu-system-x86 ovmf xorriso
+
+      # Reuse Buildroot downloads and compiled output between workflow runs.
+      - name: Cache Buildroot sources and build output
+        uses: actions/cache@v4
+        with:
+          path: |
+            downloads/
+            src/buildroot-2025.02.19/
+            build/build/
+            build/host/
+          key: termos-${{ runner.os }}-buildroot-2025.02.19-${{ hashFiles('configs/termos_defconfig', 'board/termos/linux.config', 'board/termos/vm-compat.fragment') }}
+          restore-keys: |
+            termos-${{ runner.os }}-buildroot-2025.02.19-
 
       - name: Validate project scripts and dashboard
         run: |
