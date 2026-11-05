@@ -10,6 +10,7 @@ EXPECTED_COMMIT="14e0173e354a44b640723755b28180a1c819af05"
 BUILDROOT_VERSION="2025.02.19"
 BUILDROOT_BASE_URL="https://buildroot.org/downloads"
 LEGAL_INFO_ARCHIVE="$ARTIFACT_DIR/TermOS-legal-info.tar.gz"
+SBOM_FILE="$ARTIFACT_DIR/TermOS-v0.2.0.cdx.json"
 BUNDLE_NAME="TermOS-v0.2.0-corresponding-source"
 
 if [[ -z "$ARTIFACT_DIR" || -z "$OUTPUT_DIR" ]]; then
@@ -27,6 +28,17 @@ if [[ ! -s "$LEGAL_INFO_ARCHIVE" ]]; then
     echo "ERROR: missing CI legal-info archive: $LEGAL_INFO_ARCHIVE" >&2
     exit 1
 fi
+if [[ ! -s "$SBOM_FILE" ]]; then
+    echo "ERROR: missing CycloneDX SBOM from release CI: $SBOM_FILE" >&2
+    exit 1
+fi
+python3 - "$SBOM_FILE" <<'PY'
+import json, sys
+with open(sys.argv[1], encoding="utf-8") as stream:
+    bom = json.load(stream)
+if bom.get("bomFormat") != "CycloneDX" or not isinstance(bom.get("components"), list):
+    raise SystemExit("Invalid CycloneDX BOM")
+PY
 
 if ! git rev-parse --verify "$RELEASE_TAG^{commit}" >/dev/null 2>&1; then
     git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
@@ -57,6 +69,7 @@ for directory in legal-info/sources/ legal-info/host-sources/ legal-info/license
 done
 
 cp "$LEGAL_INFO_ARCHIVE" "$BUNDLE_DIR/TermOS-legal-info.tar.gz"
+cp "$SBOM_FILE" "$BUNDLE_DIR/TermOS-v0.2.0.cdx.json"
 
 BUILDROOT_ARCHIVE="buildroot-$BUILDROOT_VERSION.tar.xz"
 curl --fail --location --retry 3 --retry-delay 2 \
@@ -112,7 +125,10 @@ Contents
    material, which Buildroot documents as additional patches not copied into
    the per-package legal-info source directories.
 
-4. compliance-docs/
+4. TermOS-v0.2.0.cdx.json
+   CycloneDX SBOM generated from Buildroot show-info for the release build.
+
+5. compliance-docs/
    TermOS's component inventory, third-party notices index, technical review,
    and compliance checklist prepared after the v0.2.0 release.
 
@@ -157,6 +173,7 @@ EOF
     sha256sum \
         "TermOS-source-$RELEASE_TAG.tar.gz" \
         "TermOS-legal-info.tar.gz" \
+        "TermOS-v0.2.0.cdx.json" \
         "$BUILDROOT_ARCHIVE" \
         "$BUILDROOT_ARCHIVE.sign" > SHA256SUMS
 )
