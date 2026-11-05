@@ -8,6 +8,7 @@ on:
       - "board/termos/**"
       - "configs/termos_defconfig"
       - "scripts/build.sh"
+      - "scripts/generate-legal-review.py"
       - "scripts/run-qemu.sh"
       - "tests/**"
       - "tpm/**"
@@ -21,6 +22,7 @@ on:
       - "board/termos/**"
       - "configs/termos_defconfig"
       - "scripts/build.sh"
+      - "scripts/generate-legal-review.py"
       - "scripts/run-qemu.sh"
       - "tests/**"
       - "tpm/**"
@@ -79,6 +81,7 @@ jobs:
             python3 -m py_compile board/termos/rootfs-overlay/opt/termos/dashboard.py
           python3 -m unittest discover -s tests -v
           python3 -m pytest -q tpm/tests
+          python3 -m py_compile scripts/generate-legal-review.py
 
       - name: Build ISO
         env:
@@ -93,6 +96,19 @@ jobs:
           make -C src/buildroot-2025.02.19 O="$PWD/build" legal-info
           test -s build/legal-info/README
           test -s build/legal-info/manifest.csv
+
+
+      # Keep a compact, inspectable legal review artifact separate from the
+      # full source archive bundle, which may be too large for convenient review.
+      - name: Generate compact third-party review bundle
+        run: |
+          set -euo pipefail
+          mkdir -p artifact
+          python3 scripts/generate-legal-review.py \
+            --legal-info build/legal-info \
+            --output artifact/legal-review
+          tar -czf artifact/TermOS-legal-review-v0.2.0.tar.gz \
+            -C artifact/legal-review .
 
       - name: Check ISO format, checksum, and required kernel drivers
         shell: bash
@@ -191,5 +207,14 @@ jobs:
         with:
           name: TermOS-CI-x86_64
           path: artifact/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload compact legal review evidence
+        if: always() && hashFiles('artifact/TermOS-legal-review-v0.2.0.tar.gz') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: TermOS-legal-review-v0.2.0
+          path: artifact/TermOS-legal-review-v0.2.0.tar.gz
           if-no-files-found: error
           retention-days: 14
