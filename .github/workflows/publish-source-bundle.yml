@@ -1,0 +1,56 @@
+name: Publish TermOS v0.2.0 corresponding source
+
+on:
+  workflow_run:
+    workflows:
+      - Build and validate TermOS ISO
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish-source:
+    if: >-
+      ${{ github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_branch == 'main' &&
+          contains(github.event.workflow_run.head_commit.message,
+          'docs: refresh v0.2.0 licensing and compliance review') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out TermOS source-bundle tooling
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Download exact v0.2.0 CI legal-info artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: TermOS-CI-x86_64
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ci-artifact
+
+      - name: Assemble corresponding-source archive
+        run: |
+          set -euo pipefail
+          ./scripts/assemble-source-bundle.sh ci-artifact dist
+          test -s dist/TermOS-Corresponding-Source-v0.2.0.tar.gz
+          test -s dist/TermOS-Corresponding-Source-v0.2.0.tar.gz.sha256
+
+      - name: Publish source archive and checksum to the existing release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.2.0
+          files: |
+            dist/TermOS-Corresponding-Source-v0.2.0.tar.gz
+            dist/TermOS-Corresponding-Source-v0.2.0.tar.gz.sha256
+          overwrite_files: true
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

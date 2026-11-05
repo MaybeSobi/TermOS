@@ -5,9 +5,12 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/termos-iso.yml"
+      - ".github/workflows/publish-source-bundle.yml"
       - "board/termos/**"
       - "configs/termos_defconfig"
       - "scripts/build.sh"
+      - "scripts/generate-legal-review.py"
+      - "scripts/assemble-source-bundle.sh"
       - "scripts/run-qemu.sh"
       - "tests/**"
       - "tpm/**"
@@ -18,9 +21,12 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/termos-iso.yml"
+      - ".github/workflows/publish-source-bundle.yml"
       - "board/termos/**"
       - "configs/termos_defconfig"
       - "scripts/build.sh"
+      - "scripts/generate-legal-review.py"
+      - "scripts/assemble-source-bundle.sh"
       - "scripts/run-qemu.sh"
       - "tests/**"
       - "tpm/**"
@@ -74,11 +80,12 @@ jobs:
       - name: Validate project scripts and dashboard
         run: |
           set -euo pipefail
-          bash -n scripts/build.sh scripts/run-qemu.sh
+          bash -n scripts/build.sh scripts/run-qemu.sh scripts/assemble-source-bundle.sh
           PYTHONPYCACHEPREFIX=/tmp/termos-pycache \
             python3 -m py_compile board/termos/rootfs-overlay/opt/termos/dashboard.py
           python3 -m unittest discover -s tests -v
           python3 -m pytest -q tpm/tests
+          python3 -m py_compile scripts/generate-legal-review.py
 
       - name: Build ISO
         env:
@@ -93,6 +100,59 @@ jobs:
           make -C src/buildroot-2025.02.19 O="$PWD/build" legal-info
           test -s build/legal-info/README
           test -s build/legal-info/manifest.csv
+
+
+      # Keep a compact, inspectable legal review artifact separate from the
+      # full source archive bundle, which may be too large for convenient review.
+      - name: Generate compact third-party review bundle
+        run: |
+          set -euo pipefail
+          mkdir -p artifact
+          python3 scripts/generate-legal-review.py \
+            --legal-info build/legal-info \
+            --output artifact/legal-review
+          tar -czf artifact/TermOS-legal-review-v0.2.0.tar.gz \
+            -C artifact/legal-review .
+
+      # Keep the exact small evidence in the run log as text too, so the
+      # package inventory can be reviewed without unpacking the large source archive.
+      - name: Emit legal review inputs for audit
+        run: |
+          set -euo pipefail
+          echo "===== TERMOS LEGAL README BEGIN ====="
+          cat build/legal-info/README
+          echo "===== TERMOS LEGAL README END ====="
+          echo "===== TERMOS TARGET MANIFEST BEGIN ====="
+          cat build/legal-info/manifest.csv
+          echo "===== TERMOS TARGET MANIFEST END ====="
+          echo "===== TERMOS HOST MANIFEST BEGIN ====="
+          cat build/legal-info/host-manifest.csv
+          echo "===== TERMOS HOST MANIFEST END ====="
+          echo "===== TERMOS COLLECTED LICENSE TEXTS BEGIN ====="
+          for base in build/legal-info/licenses build/legal-info/host-licenses; do
+            if [ -d "$base" ]; then
+              while IFS= read -r -d '' file; do
+                printf '\\n===== LICENSE FILE: %s =====\\n' "$file"
+                cat "$file"
+              done < <(find "$base" -type f -print0 | sort -z)
+            fi
+          done
+          echo "===== TERMOS COLLECTED LICENSE TEXTS END ====="
+
+      - name: Generate CycloneDX SBOM
+        working-directory: src/buildroot-2025.02.19
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/artifact"
+          make O="$GITHUB_WORKSPACE/build" show-info \
+            > "$GITHUB_WORKSPACE/artifact/buildroot-show-info.json"
+          test -s "$GITHUB_WORKSPACE/artifact/buildroot-show-info.json"
+          python3 -m json.tool "$GITHUB_WORKSPACE/artifact/buildroot-show-info.json" >/dev/null
+          python3 utils/generate-cyclonedx \
+            --in-file "$GITHUB_WORKSPACE/artifact/buildroot-show-info.json" \
+            --out-file "$GITHUB_WORKSPACE/artifact/TermOS-v0.2.0.cdx.json"
+          python3 -m json.tool "$GITHUB_WORKSPACE/artifact/TermOS-v0.2.0.cdx.json" >/dev/null
+          rm "$GITHUB_WORKSPACE/artifact/buildroot-show-info.json"
 
       - name: Check ISO format, checksum, and required kernel drivers
         shell: bash
@@ -191,5 +251,14 @@ jobs:
         with:
           name: TermOS-CI-x86_64
           path: artifact/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload compact legal review evidence
+        if: always() && hashFiles('artifact/TermOS-legal-review-v0.2.0.tar.gz') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: TermOS-legal-review-v0.2.0
+          path: artifact/TermOS-legal-review-v0.2.0.tar.gz
           if-no-files-found: error
           retention-days: 14

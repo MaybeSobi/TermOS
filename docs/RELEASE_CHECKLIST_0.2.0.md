@@ -1,28 +1,11 @@
 # TermOS 0.2.0 — Release readiness
 
-## Verified in CI
+The detailed release and compliance status for v0.2.0 is maintained in the current checklist:
 
-- [x] TPM pytest suite is part of the required ISO workflow.
-- [x] Buildroot output cache includes the complete output tree, including the target filesystem.
-- [x] ISO builds successfully.
-- [x] ISO reaches the init process in QEMU with UEFI firmware and VirtIO networking.
-- [x] ISO format, checksum generation, and required kernel driver configuration checks pass.
-- [x] TPM source modules match the corresponding copies installed in the root filesystem overlay.
-- [x] No private repository signing key is included in the reviewed TPM source tree.
+**[Open the v0.2.0 compliance checklist](COMPLIANCE_CHECKLIST_0.2.0.md)**
 
-## Required before publishing the v0.2.0 ISO
+This file remains as a compatibility link for older references. The current checklist separates successful build/release evidence from the remaining source-publication verification, contributor-rights confirmation, legal review, and physical-hardware testing.
 
-- [ ] Generate and inspect the Buildroot legal-info archive from the exact release build.
-- [ ] Resolve or document every missing-source warning in legal-info/README.
-- [ ] Review manifest.csv and license texts for target packages and relevant host tools.
-- [ ] Confirm required notices and corresponding-source obligations for GPL/LGPL and other third-party components.
-- [x] A repository `LICENSE` file declares the MIT License for TermOS's own code; confirm contributor ownership/coverage before relying on it.
-- [ ] Publish required notices and source-availability information where applicable.
-- [ ] Download the final release asset independently and verify its SHA-256.
-- [ ] Test booting the release ISO from USB on physical hardware, if available.
+The exact package inventory is available in [THIRD_PARTY_COMPONENTS_0.2.0.csv](THIRD_PARTY_COMPONENTS_0.2.0.csv). The detailed package-level technical review is in [THIRD_PARTY_LICENSE_REVIEW_0.2.0.md](THIRD_PARTY_LICENSE_REVIEW_0.2.0.md), with the [third-party notices index](THIRD_PARTY_NOTICES.md) as the stable entry point.
 
-## Release caveat
-
-The successful QEMU boot and generated legal-info inventory are not legal approval. Do not publish or encourage wider redistribution of the ISO until the missing-source warnings and applicable third-party license obligations have been reviewed and resolved.
-
-The CI artifact is a temporary test artifact, not the official v0.2.0 release.
+TermOS v0.2.0 is an experimental preview. The published ISO passed automated UEFI/QEMU validation, but it has not been verified on physical hardware. Buildroot legal-info and the generated inventory are technical evidence, not a legal opinion or compliance certificate.
