@@ -10,6 +10,7 @@ on:
       - "scripts/build.sh"
       - "scripts/run-qemu.sh"
       - "tests/**"
+      - "tpm/**"
   pull_request:
     branches: [main]
     paths:
@@ -42,7 +43,7 @@ jobs:
           sudo apt-get install -y \
             build-essential bc bison flex gawk git patch perl python3 rsync \
             file cpio unzip wget curl xz-utils libncurses-dev libssl-dev \
-            libelf-dev qemu-system-x86 ovmf xorriso
+            libelf-dev qemu-system-x86 ovmf xorriso python3-pytest
 
       # Reuse Buildroot downloads and compiled output between workflow runs.
       - name: Cache Buildroot sources and build output
@@ -64,6 +65,7 @@ jobs:
           PYTHONPYCACHEPREFIX=/tmp/termos-pycache \
             python3 -m py_compile board/termos/rootfs-overlay/opt/termos/dashboard.py
           python3 -m unittest discover -s tests -v
+          python3 -m pytest -q tpm/tests
 
       - name: Build ISO
         env:
