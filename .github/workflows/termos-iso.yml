@@ -110,6 +110,31 @@ jobs:
           tar -czf artifact/TermOS-legal-review-v0.2.0.tar.gz \
             -C artifact/legal-review .
 
+      # Keep the exact small evidence in the run log as text too, so the
+      # package inventory can be reviewed without unpacking the large source archive.
+      - name: Emit legal review inputs for audit
+        run: |
+          set -euo pipefail
+          echo "===== TERMOS LEGAL README BEGIN ====="
+          cat build/legal-info/README
+          echo "===== TERMOS LEGAL README END ====="
+          echo "===== TERMOS TARGET MANIFEST BEGIN ====="
+          cat build/legal-info/manifest.csv
+          echo "===== TERMOS TARGET MANIFEST END ====="
+          echo "===== TERMOS HOST MANIFEST BEGIN ====="
+          cat build/legal-info/host-manifest.csv
+          echo "===== TERMOS HOST MANIFEST END ====="
+          echo "===== TERMOS COLLECTED LICENSE TEXTS BEGIN ====="
+          for base in build/legal-info/licenses build/legal-info/host-licenses; do
+            if [ -d "$base" ]; then
+              while IFS= read -r -d '' file; do
+                printf '\\n===== LICENSE FILE: %s =====\\n' "$file"
+                cat "$file"
+              done < <(find "$base" -type f -print0 | sort -z)
+            fi
+          done
+          echo "===== TERMOS COLLECTED LICENSE TEXTS END ====="
+
       - name: Check ISO format, checksum, and required kernel drivers
         shell: bash
         run: |
@@ -208,7 +233,7 @@ jobs:
           name: TermOS-CI-x86_64
           path: artifact/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
 
       - name: Upload compact legal review evidence
         if: always() && hashFiles('artifact/TermOS-legal-review-v0.2.0.tar.gz') != ''
