@@ -138,18 +138,19 @@ jobs:
           echo "===== TERMOS COLLECTED LICENSE TEXTS END ====="
 
       - name: Generate CycloneDX SBOM
+        working-directory: src/buildroot-2025.02.19
         run: |
           set -euo pipefail
-          mkdir -p artifact
-          make --no-print-directory -s \
-            -C src/buildroot-2025.02.19 O="$PWD/build" show-info \
-            > artifact/buildroot-show-info.json
-          python3 -m json.tool artifact/buildroot-show-info.json >/dev/null
-          python3 src/buildroot-2025.02.19/utils/generate-cyclonedx \
-            --in-file artifact/buildroot-show-info.json \
-            --out-file artifact/TermOS-v0.2.0.cdx.json
-          python3 -m json.tool artifact/TermOS-v0.2.0.cdx.json >/dev/null
-          rm artifact/buildroot-show-info.json
+          mkdir -p "$GITHUB_WORKSPACE/artifact"
+          make O="$GITHUB_WORKSPACE/build" show-info \
+            > "$GITHUB_WORKSPACE/artifact/buildroot-show-info.json"
+          test -s "$GITHUB_WORKSPACE/artifact/buildroot-show-info.json"
+          python3 -m json.tool "$GITHUB_WORKSPACE/artifact/buildroot-show-info.json" >/dev/null
+          python3 utils/generate-cyclonedx \
+            --in-file "$GITHUB_WORKSPACE/artifact/buildroot-show-info.json" \
+            --out-file "$GITHUB_WORKSPACE/artifact/TermOS-v0.2.0.cdx.json"
+          python3 -m json.tool "$GITHUB_WORKSPACE/artifact/TermOS-v0.2.0.cdx.json" >/dev/null
+          rm "$GITHUB_WORKSPACE/artifact/buildroot-show-info.json"
 
       - name: Check ISO format, checksum, and required kernel drivers
         shell: bash
