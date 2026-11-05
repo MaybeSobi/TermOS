@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/termos-iso.yml"
+      - ".github/workflows/publish-source-bundle.yml"
       - "board/termos/**"
       - "configs/termos_defconfig"
       - "scripts/build.sh"
@@ -20,6 +21,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/termos-iso.yml"
+      - ".github/workflows/publish-source-bundle.yml"
       - "board/termos/**"
       - "configs/termos_defconfig"
       - "scripts/build.sh"
