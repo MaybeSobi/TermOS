@@ -16,7 +16,7 @@
 - [ ] Resolve or document every missing-source warning in legal-info/README.
 - [ ] Review manifest.csv and license texts for target packages and relevant host tools.
 - [ ] Confirm required notices and corresponding-source obligations for GPL/LGPL and other third-party components.
-- [ ] Decide and document the license for TermOS's own code; the GitHub repository currently reports NOASSERTION.
+- [x] A repository `LICENSE` file declares the MIT License for TermOS's own code; confirm contributor ownership/coverage before relying on it.
 - [ ] Publish required notices and source-availability information where applicable.
 - [ ] Download the final release asset independently and verify its SHA-256.
 - [ ] Test booting the release ISO from USB on physical hardware, if available.
