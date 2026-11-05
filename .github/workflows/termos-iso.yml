@@ -94,6 +94,42 @@ jobs:
           test -s build/legal-info/README
           test -s build/legal-info/manifest.csv
 
+      # Keep the human-reviewable metadata separate from the large source archive.
+      # This makes manifests and license texts practical to inspect without downloading
+      # the full legal-info archive, which also contains many source tarballs.
+      - name: Prepare compact legal review metadata
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE=build/legal-info
+          DEST=legal-review-metadata
+
+          if [[ ! -s "$SOURCE/README" || ! -s "$SOURCE/manifest.csv" ]]; then
+            echo "Legal-info metadata is unavailable; skipping compact review artifact."
+            exit 0
+          fi
+
+          mkdir -p "$DEST"
+          for file in README manifest.csv host-manifest.csv buildroot.config; do
+            if [[ -s "$SOURCE/$file" ]]; then
+              cp "$SOURCE/$file" "$DEST/"
+            fi
+          done
+
+          for dir in licenses host-licenses; do
+            if [[ -d "$SOURCE/$dir" ]]; then
+              cp -a "$SOURCE/$dir" "$DEST/"
+            fi
+          done
+
+          (
+            cd "$DEST"
+            find . -type f ! -name SHA256SUMS -print0 |
+              sort -z |
+              xargs -0 -r sha256sum > SHA256SUMS
+          )
+
       - name: Check ISO format, checksum, and required kernel drivers
         shell: bash
         run: |
@@ -184,6 +220,15 @@ jobs:
           if [ -d build/legal-info ]; then
             tar -czf artifact/TermOS-legal-info.tar.gz -C build legal-info
           fi
+
+      - name: Upload compact legal review metadata
+        if: always() && hashFiles('legal-review-metadata/README') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: TermOS-Legal-Review-Metadata
+          path: legal-review-metadata/
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Upload ISO and legal review artifacts
         if: always() && hashFiles('artifact/TermOS-CI-x86_64.iso') != ''
