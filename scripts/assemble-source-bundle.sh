@@ -2,8 +2,12 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "$0")/.." && pwd)"
-ARTIFACT_DIR="\${1:?usage: assemble-source-bundle.sh <ci-artifact-dir> <output-dir>}"
-OUTPUT_DIR="\${2:?usage: assemble-source-bundle.sh <ci-artifact-dir> <output-dir>}"
+if [[ "$#" -ne 2 ]]; then
+    echo "ERROR: usage: assemble-source-bundle.sh <ci-artifact-dir> <output-dir>" >&2
+    exit 2
+fi
+ARTIFACT_DIR="$1"
+OUTPUT_DIR="$2"
 
 RELEASE_TAG="v0.2.0"
 EXPECTED_COMMIT="14e0173e354a44b640723755b28180a1c819af05"
@@ -12,11 +16,6 @@ BUILDROOT_BASE_URL="https://buildroot.org/downloads"
 LEGAL_INFO_ARCHIVE="$ARTIFACT_DIR/TermOS-legal-info.tar.gz"
 SBOM_FILE="$ARTIFACT_DIR/TermOS-v0.2.0.cdx.json"
 BUNDLE_NAME="TermOS-v0.2.0-corresponding-source"
-
-if [[ -z "$ARTIFACT_DIR" || -z "$OUTPUT_DIR" ]]; then
-    echo "ERROR: usage: assemble-source-bundle.sh <ci-artifact-dir> <output-dir>" >&2
-    exit 2
-fi
 
 mkdir -p "$OUTPUT_DIR"
 WORK_DIR="$(mktemp -d)"
