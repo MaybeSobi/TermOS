@@ -1,28 +1,38 @@
-# TermOS 0.2.0 — Release readiness
+# TermOS 0.2.0 — Release, licensing, and validation checklist
 
-## Verified in CI
+This checklist distinguishes evidence that CI generated successfully from obligations that still require review. Do not mark a legal obligation complete based only on the existence of Buildroot's `legal-info` output.
 
-- [x] TPM pytest suite is part of the required ISO workflow.
-- [x] Buildroot output cache includes the complete output tree, including the target filesystem.
-- [x] ISO builds successfully.
-- [x] ISO reaches the init process in QEMU with UEFI firmware and VirtIO networking.
-- [x] ISO format, checksum generation, and required kernel driver configuration checks pass.
-- [x] TPM source modules match the corresponding copies installed in the root filesystem overlay.
-- [x] No private repository signing key is included in the reviewed TPM source tree.
+## Verified against the v0.2.0 tag
 
-## Required before publishing the v0.2.0 ISO
+- [x] The `v0.2.0` Git tag points to commit `14e0173e354a44b640723755b28180a1c819af05`.
+- [x] Main-branch CI run [#22](https://github.com/MaybeSobi/TermOS/actions/runs/42106722558) for that exact commit completed successfully.
+- [x] The ISO build, checksum generation, required kernel configuration checks, and QEMU UEFI boot to init passed in run #22.
+- [x] Buildroot `make legal-info` completed successfully for the tagged commit and produced `README` and `manifest.csv`.
+- [x] The CI legal-info log recorded 61 package collection entries and 86 successful license-file hash checks. This is collection evidence, not a manual review of the manifest or license texts.
+- [x] The release ISO's SHA-256 was independently checked against the GitHub release asset digest: `4b09ad178f3eaf202ab4e26a1c6b60c83eb4d869074de4352e1be92ba56da565`.
+- [x] TermOS's repository `LICENSE` declares MIT for TermOS-authored project files only. This does not apply to third-party components.
 
-- [ ] Generate and inspect the Buildroot legal-info archive from the exact release build.
-- [ ] Resolve or document every missing-source warning in legal-info/README.
-- [ ] Review manifest.csv and license texts for target packages and relevant host tools.
-- [ ] Confirm required notices and corresponding-source obligations for GPL/LGPL and other third-party components.
-- [x] A repository `LICENSE` file declares the MIT License for TermOS's own code; confirm contributor ownership/coverage before relying on it.
-- [ ] Publish required notices and source-availability information where applicable.
-- [ ] Download the final release asset independently and verify its SHA-256.
-- [ ] Test booting the release ISO from USB on physical hardware, if available.
+## Remaining legal review before promoting or redistributing the ISO more widely
 
-## Release caveat
+- [ ] Inspect the exact target `manifest.csv` and `host-manifest.csv`; identify any `unknown` license/version fields and classify target packages separately from build-only host tools.
+- [ ] Inspect the contents of `legal-info/README` and resolve or document every missing-material warning. CI stdout reports: `WARNING: the Buildroot source code has not been saved`. Its relevance to the distributed ISO and reproducible source package must be explicitly assessed.
+- [ ] Compare every target-package license declaration with the actual license texts, including exceptions, dual licensing, embedded third-party notices, and files not represented by the package's main license field.
+- [ ] Identify the complete corresponding source, applicable patches, and build/install scripts for every copyleft component distributed in the ISO (including the kernel, BusyBox, glibc/toolchain runtime, and GRUB where applicable).
+- [ ] Verify that the corresponding source for the exact tagged build is available to recipients through a durable, clearly linked location, with the source access method satisfying each component's license.
+- [ ] Publish the required third-party notices, license texts, source links or written-offer information, and a checksum for the compliance bundle alongside the relevant release assets.
+- [ ] Review whether the repository-wide MIT declaration accurately covers every TermOS-authored file and whether all contributors have granted the rights needed to publish those files under MIT.
+- [ ] Obtain an independent legal review before describing the distribution as legally certified or fully compliant.
 
-The successful QEMU boot and generated legal-info inventory are not legal approval. Do not publish or encourage wider redistribution of the ISO until the missing-source warnings and applicable third-party license obligations have been reviewed and resolved.
+## Physical hardware validation
 
-The CI artifact is a temporary test artifact, not the official v0.2.0 release.
+- [ ] Boot the exact v0.2.0 release ISO from USB on physical x86_64 hardware.
+- [ ] Record device model, firmware/UEFI mode, boot result, display, keyboard, storage, and network observations.
+- [ ] Test on additional physical hardware before making broad compatibility claims.
+
+## Current status and caveats
+
+The v0.2.0 ISO is already published. Passing CI and generating Buildroot's legal-info inventory do not prove legal compliance. The log identifies the Buildroot source archive as not saved; the exact manifests and README warnings still require inspection. The next CI revision exports a compact metadata artifact separately from the much larger source archive so that the actual manifests and license texts can be reviewed.
+
+Buildroot documents that its legal-info data comes from package recipe metadata, may be incomplete or inaccurate, and must be checked before being used as a compliance delivery. The GNU GPL requires complete corresponding source or another permitted method of source provision when covered binaries are distributed; the exact method depends on the license version and distribution circumstances.
+
+No formal legal certificate is created by this checklist. A legal opinion or certification must come from an appropriately qualified independent professional.
