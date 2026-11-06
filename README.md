@@ -16,7 +16,7 @@ A small x86_64 Linux system built with Buildroot, featuring a Python terminal da
 </div>
 
 > [!WARNING]
-> **TermOS is an experimental preview, not a production operating system.** The v0.2.0 ISO passed the automated UEFI/QEMU boot workflow, was manually boot-tested in VMware Workstation Pro 17 using UEFI firmware, and has been reported to boot successfully on one older physical PC. The physical-machine test is a single smoke test; its hardware specifications and boot method have not yet been recorded. Broad hardware compatibility and physical USB boot are not yet verified.
+> **TermOS is an experimental preview, not a production operating system.** The v0.2.0 ISO passed the automated UEFI/QEMU boot workflow, was manually boot-tested in VMware Workstation Pro 17 using UEFI firmware, and has also been reported to boot successfully on one physical computer. This is a single-machine smoke test; broad hardware compatibility and physical USB boot are not yet verified.
 
 > [!IMPORTANT]
 > The v0.2.0 release is an experimental preview. Its exact Buildroot manifests contain 10 target and 38 host/build-tool entries. CI collected 86 declared license files and reported successful SHA-256 checks for all 86. The package inventory and multi-license review are documented, but this technical evidence is **not a legal-compliance certification**. The corresponding-source publishing workflow is configured; treat the source package as published only after its assets appear on the [release page](https://github.com/MaybeSobi/TermOS/releases/tag/v0.2.0). See the [component inventory](docs/THIRD_PARTY_COMPONENTS_0.2.0.csv), [license review](docs/THIRD_PARTY_LICENSE_REVIEW_0.2.0.md), and [compliance checklist](docs/COMPLIANCE_CHECKLIST_0.2.0.md).
@@ -29,7 +29,7 @@ A small x86_64 Linux system built with Buildroot, featuring a Python terminal da
 | Architecture | x86_64 |
 | Boot mode | UEFI |
 | Virtualization testing | QEMU (automated CI) and VMware Workstation Pro 17 (manual boot test) |
-| Physical hardware test | One successful boot reported on an older PC (specifications pending; smoke test only) |
+| Physical hardware test | One successful boot reported on a physical computer (single-machine smoke test) |
 | Build system | Buildroot 2025.02.19 |
 | Linux kernel | 6.12.27 |
 | Userspace | BusyBox and Python 3 |
@@ -56,7 +56,7 @@ The VMware result is a manual smoke test, not an automated compatibility guarant
 
 ### Physical hardware testing
 
-A successful boot has been reported on one older physical PC. This is an initial, single-machine smoke test only: the exact CPU, RAM, motherboard, graphics, firmware mode, and boot method have not yet been documented. It does not establish general compatibility with older computers or other physical hardware.
+A successful boot has been reported on one physical computer. This is an initial, single-machine smoke test only and does not establish general compatibility with all physical hardware.
 
 ### Known limitations
 
