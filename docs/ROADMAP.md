@@ -94,7 +94,7 @@ The current milestone sequence introduces capabilities progressively:
 
 This is an emphasis map, not an exclusion list or a promise that every feature will be complete for a persona at a particular milestone. Acceptance criteria and validation remain more important than the version label.
 
-## 3. The 0.x / 1.0 agreement
+## 4. The 0.x / 1.0 agreement
 
 ### Through v0.9.x: Buildroot development and experimentation
 
@@ -126,7 +126,7 @@ The goal is not simply to replace Buildroot with Debian. The 1.0 release should 
 
 The exact Debian release, package versions, init/service choices, and migration mechanism must be selected and validated during the 0.9 preparation phase. They are not frozen by this roadmap.
 
-## 3. Version milestones
+## 4. Version milestones
 
 The version-to-feature mapping below is a planning guide. Scope may move between releases when testing shows that a feature needs more work.
 
@@ -142,7 +142,7 @@ The version-to-feature mapping below is a planning guide. Scope may move between
 | v0.9.x | Buildroot finalization and migration preparation | Stabilize the 0.x line, document limitations, define Debian target architecture, and prove migration-critical prototypes |
 | **v1.0.0** | **Debian-based next generation** | **Deliver the modular, CLI-first TermOS platform with guided installation and official optional desktop profiles** |
 
-## 4. v0.3.0 scope: balanced foundations
+## 5. v0.3.0 scope: balanced foundations
 
 The first planned milestone under this agreement is v0.3.0. Its four focus areas are:
 
@@ -193,7 +193,7 @@ Do not call v0.3.0 complete until:
 - The ISO builds and passes the project's required boot tests.
 - Release assets, checksums, corresponding source, and third-party license review are handled according to the release checklist.
 
-## 5. Installer and first-boot experience
+## 6. Installer and first-boot experience
 
 The intended TermOS installer is a guided TUI inspired by the usability of modern terminal installers.
 
@@ -216,7 +216,7 @@ After installation, the intended default flow is:
 
 A graphical desktop must not be forced on users who choose the CLI experience.
 
-## 6. Control Center and system architecture
+## 7. Control Center and system architecture
 
 The long-term Control Center should provide modules for:
 
@@ -233,7 +233,7 @@ The Control Center should communicate with dedicated system components through d
 
 Privileged actions must use narrow, auditable authorization boundaries, validate arguments, provide clear confirmation for destructive changes, and log meaningful outcomes.
 
-## 7. Package-management boundaries for v1.0
+## 8. Package-management boundaries for v1.0
 
 If Debian is selected as the v1.0 base, the package architecture must avoid two independent package managers writing over the same files.
 
@@ -247,7 +247,7 @@ The working direction is:
 
 This boundary is a design requirement to validate, not a claim that the final implementation already exists.
 
-## 8. Profiles and optional desktop environments
+## 9. Profiles and optional desktop environments
 
 The long-term profile system should support official profiles and, eventually, community repositories.
 
@@ -275,7 +275,7 @@ Profiles from GitHub or other remote sources must never be treated as trusted me
 
 Official profile support means the project commits to testing and maintaining the profile; it should not be used as a label for unverified community contributions.
 
-## 9. Testing, security, and release discipline
+## 10. Testing, security, and release discipline
 
 Every feature should have acceptance criteria before implementation.
 
@@ -295,7 +295,7 @@ A passing CI run is evidence for the tests it executes; it is not proof of broad
 
 Before public redistribution of each release, review applicable third-party licenses, notices, and corresponding-source obligations. Build metadata or a successful legal-info command is not itself legal approval.
 
-## 10. v0.9 to v1.0 migration gate
+## 11. v0.9 to v1.0 migration gate
 
 The Debian transition must be treated as a separate generation of the project, not a routine base-image update. **TermOS v1.0.0 requires a fresh installation; in-place conversion from Buildroot-based 0.x installations is not supported.** See [Migration to Debian](MIGRATION_TO_DEBIAN.md) for the release policy, backup guidance, architecture, work phases, and acceptance gate.
 
@@ -313,7 +313,7 @@ Before starting the 1.0 release candidate, require:
 
 If any critical requirement is not met, extend the 0.9 preparation period or delay 1.0. Do not ship 1.0 merely to meet a calendar target.
 
-## 11. Out of scope unless separately approved
+## 12. Out of scope unless separately approved
 
 The following are not automatic commitments for the 0.x roadmap:
 
@@ -325,7 +325,7 @@ The following are not automatic commitments for the 0.x roadmap:
 - Replacing APT/dpkg without a separate package architecture proposal.
 - A full graphical settings application before the CLI Control Center is stable.
 
-## 12. Project rules
+## 13. Project rules
 
 1. **Buildroot through v0.9.x.** Do not migrate the 0.x development line to Debian.
 2. **v1.0 is the Debian-based generation.** It must deliver a meaningful, tested architectural transition.
