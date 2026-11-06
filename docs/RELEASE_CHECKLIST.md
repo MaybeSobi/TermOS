@@ -1,59 +1,100 @@
-# TermOS 0.1.0 — Release and Validation Checklist
+# TermOS v0.2.0 — Release and Validation Checklist
 
-This checklist records the current public release state. Mark items complete only when there is evidence for them.
+This document records the published state of TermOS v0.2.0. Check an item only when the result is supported by a release artifact, CI run, or recorded test.
 
-## Latest local validation (2026-10-30)
+## Release identity
 
-- [x] Re-ran Buildroot `defconfig` so `BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES` points to `board/termos/vm-compat.fragment`.
-- [x] Reconfigured and rebuilt the kernel/ISO with VMware display and network drivers enabled in the final kernel config.
-- [x] Maintainer reports the resulting ISO boots in VMware; the terminal dashboard, shell, and network connectivity work.
-- [x] New local ISO SHA-256: `fdf9986af5fb7fc835e1868220385de95d3aa0bdf88672fa5a4fffec4c1336d3`.
-- [ ] Upload this newly tested ISO as a new versioned release asset and verify it by downloading it back from GitHub.
-- [ ] Update the README's release links and published checksum after the upload.
+- [x] Version: `v0.2.0`
+- [x] Release type: experimental preview
+- [x] Build system: Buildroot `2025.02.19`
+- [x] Linux kernel: `6.12.27`
+- [x] Target architecture: `x86_64`
+- [x] Boot mode: UEFI
+- [x] Release tag: [v0.2.0](https://github.com/MaybeSobi/TermOS/releases/tag/v0.2.0)
 
-## Published status
+## Published release assets
 
-- [x] Public GitHub release exists for tag `v0.1.0`.
-- [x] Release describes TermOS as an experimental preview.
-- [x] ISO asset is attached to the release.
-- [x] GitHub reports the asset SHA-256 as `cb6d60f6dacee9ec65d4f4681bace1f5f2971673087f318dcfe5b9383e7628f7`, matching the SHA-256 recorded locally for the published ISO.
-- [x] UEFI boot, dashboard, shell, and VirtIO networking were tested in QEMU (per the project test record).
-- [x] Buildroot `legal-info` was generated using the same build output directory.
+- [x] `TermOS-CI-x86_64.iso` — 44,107,776 bytes
+- [x] `SHA256SUMS` — published with the release
+- [x] `TermOS-Corresponding-Source-v0.2.0.tar.gz` — 470,346,600 bytes
+- [x] `TermOS-Corresponding-Source-v0.2.0.tar.gz.sha256` — published with the source bundle
+- [x] ISO SHA-256 recorded for this release:
 
-## Still required before promoting or redistributing the ISO more widely
+  `4b09ad178f3eaf202ab4e26a1c6b60c83eb4d869074de4352e1be92ba56da565`
 
-- [ ] Independently download the newly published VMware-tested asset from its public release URL and run the checksum verification command from the README.
-- [ ] Review `build/legal-info/manifest.csv` and the collected license texts for all target packages and relevant host tools.
-- [ ] Identify and resolve the missing-source warnings in `build/legal-info/README`, including the Buildroot source code that was not saved in the legal-info output.
-- [ ] Confirm the applicable license terms, required notices, and corresponding-source obligations for GPL/LGPL and other third-party components.
-- [ ] Prepare and publish the required notices and source-availability information where applicable.
-- [ ] Record the review outcome and the source/notice location before encouraging wider redistribution.
+## CI and automated validation
 
-**Current caveat:** The ISO is already publicly downloadable. The third-party redistribution review is not complete, and the Buildroot legal-info output contains warnings about missing material. Do not treat the generated inventory as legal approval or mirror/redistribute the ISO until the applicable obligations have been reviewed and resolved.
+- [x] Main ISO workflow completed successfully — run `42126043907`.
+- [x] Source publisher workflow completed successfully — run `42126460206`.
+- [x] Automated UEFI/QEMU boot validation passed.
+- [x] Source bundle was generated and attached to the release.
+- [x] Source bundle checksum file was generated and published.
 
-## Optional but recommended
+## Manual boot validation
 
-- [ ] Test booting from USB on real hardware.
-- [ ] Test on additional physical hardware and record any compatibility issues.
-- [ ] Record the host environment, test date, QEMU command, and observed results.
+- [x] Maintainer-reported boot test in VMware Workstation Pro 17 using UEFI.
+- [x] Maintainer-reported successful boot on one physical computer.
+- [ ] Record the physical computer's exact model and hardware specifications.
+- [ ] Record the physical test date, USB creation method, and boot settings.
+- [ ] Repeat physical boot testing on additional hardware.
+- [ ] Record results for networking, storage, keyboard, display, and shutdown/reboot on each tested device.
 
-## Reproduce Buildroot legal information
+A successful boot on one physical computer is a useful smoke test, not a claim of broad hardware compatibility. Keep the test environment and observed results attached to the relevant release notes or issue.
 
-Run this from the Buildroot source directory, using the same output directory as the TermOS build:
+## TPM validation status
+
+TPM is experimental in v0.2.0. Its current documented capabilities include package archive validation, sandbox and guarded system-root operations, local repository dependency resolution, and Ed25519-signed repository index verification.
+
+- [x] TPM test scripts are present in the source tree for core, security, install, remove, rollback, upgrade, dependency, and repository behavior.
+- [x] Guest/system-root test scripts are present in the repository.
+- [ ] Run and record the complete TPM test suite against the exact v0.2.0 source and release image.
+- [ ] Record the tested package fixtures and repository key setup.
+- [ ] Keep the documented v1 limitations visible: no maintainer-script execution and no symlink payload support.
+- [ ] Do not describe HTTPS repository synchronization, key rotation, revocation, or repository freshness enforcement as supported in v0.2.0.
+
+## Known limitations and release caveats
+
+- TermOS v0.2.0 is an experimental UEFI ISO preview, not a full disk installer.
+- Persistence across reboot depends on the boot and storage layout; do not promise persistent package installation or user changes in every live-ISO boot mode.
+- TPM system-root operations modify the currently mounted root filesystem and must be tested in a disposable VM before use.
+- TPM transaction tests cover injected software failures; they do not prove recovery from power loss, kernel panic, or sudden hardware failure.
+- Hardware compatibility beyond the recorded test machines is not established.
+
+## Third-party licensing and corresponding-source review
+
+The v0.2.0 corresponding-source archive is published with the release. Publication of a source archive does not, by itself, establish that every third-party license obligation has been reviewed and satisfied.
+
+- [ ] Generate Buildroot `legal-info` from the exact Buildroot output used to produce the v0.2.0 ISO.
+- [ ] Review the resulting package manifest and license texts.
+- [ ] Resolve or document missing-source warnings for all components that require corresponding source.
+- [ ] Verify required copyright notices, license texts, and source-availability information.
+- [ ] Record the review outcome and the location of the applicable notices/source materials.
+
+Do not treat a successful `legal-info` run or the existence of the source bundle as legal approval. Complete the review before encouraging wider redistribution or mirroring.
+
+## Reproducing the build
+
+The release build uses Buildroot `2025.02.19`. From the TermOS repository root:
 
 ```bash
-cd ~/TermOS/src/buildroot-2025.02.19
-make O="$HOME/TermOS/build" legal-info
+./scripts/build.sh
 ```
 
-Review the generated files under `$HOME/TermOS/build/legal-info/`:
+The build script downloads/extracts the pinned Buildroot version when needed and produces the ISO under:
+
+```text
+build/images/rootfs.iso9660
+```
+
+For legal information, run the following from the Buildroot source directory, using the same output directory as the release build:
 
 ```bash
-less "$HOME/TermOS/build/legal-info/README"
-less "$HOME/TermOS/build/legal-info/manifest.csv"
-find "$HOME/TermOS/build/legal-info" -maxdepth 2 -type f | sort
+cd src/buildroot-2025.02.19
+make O="../../build" legal-info
 ```
 
-This release uses Buildroot 2025.02.19. If the TermOS checkout is not at `$HOME/TermOS`, replace that path with the actual project directory.
+Review the generated files under `build/legal-info/`, including `README`, `manifest.csv`, and the collected license/source materials.
 
-**Reminder:** A successful `legal-info` run is an inventory, not a legal-compliance certification. Review the relevant licenses and obligations before broader redistribution.
+## Next release
+
+This checklist is specific to v0.2.0. Do not reuse its completed status for v0.3.0. Create a new release checklist and validate each new artifact and feature independently.
