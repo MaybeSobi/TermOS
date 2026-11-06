@@ -4,7 +4,7 @@
 >
 > **Guiding idea:** Easy to install. Powerful to control. Modular by design.
 
-This document is the long-term development agreement for TermOS. It records the intended direction so that future implementation and release decisions remain consistent.
+This document is the long-term development agreement for TermOS. It records the intended direction so that future implementation and release decisions remain consistent. The detailed Debian transition and release policy are defined in [Migration to Debian](MIGRATION_TO_DEBIAN.md).
 
 The roadmap is intentionally capability-driven: version numbers describe milestones, not deadlines. A release must meet its acceptance criteria before it is considered complete.
 
@@ -225,7 +225,7 @@ Before public redistribution of each release, review applicable third-party lice
 
 ## 10. v0.9 to v1.0 migration gate
 
-The Debian transition must be treated as a separate generation of the project, not a routine base-image update.
+The Debian transition must be treated as a separate generation of the project, not a routine base-image update. **TermOS v1.0.0 requires a fresh installation; in-place conversion from Buildroot-based 0.x installations is not supported.** See [Migration to Debian](MIGRATION_TO_DEBIAN.md) for the release policy, backup guidance, architecture, work phases, and acceptance gate.
 
 Before starting the 1.0 release candidate, require:
 
