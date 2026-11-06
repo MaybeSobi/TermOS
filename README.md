@@ -16,7 +16,7 @@ A small x86_64 Linux system built with Buildroot, featuring a Python terminal da
 </div>
 
 > [!WARNING]
-> **TermOS is an experimental preview, not a production operating system.** The v0.2.0 ISO passed the automated UEFI/QEMU boot workflow. Physical USB boot and compatibility with real hardware have not yet been verified.
+> **TermOS is an experimental preview, not a production operating system.** The v0.2.0 ISO passed the automated UEFI/QEMU boot workflow and has also been manually boot-tested in VMware Workstation Pro 17 using UEFI firmware. Physical USB boot and compatibility with real hardware have not yet been verified.
 
 > [!IMPORTANT]
 > The v0.2.0 release is an experimental preview. Its exact Buildroot manifests contain 10 target and 38 host/build-tool entries. CI collected 86 declared license files and reported successful SHA-256 checks for all 86. The package inventory and multi-license review are documented, but this technical evidence is **not a legal-compliance certification**. The corresponding-source publishing workflow is configured; treat the source package as published only after its assets appear on the [release page](https://github.com/MaybeSobi/TermOS/releases/tag/v0.2.0). See the [component inventory](docs/THIRD_PARTY_COMPONENTS_0.2.0.csv), [license review](docs/THIRD_PARTY_LICENSE_REVIEW_0.2.0.md), and [compliance checklist](docs/COMPLIANCE_CHECKLIST_0.2.0.md).
@@ -28,6 +28,7 @@ A small x86_64 Linux system built with Buildroot, featuring a Python terminal da
 | Latest preview | [v0.2.0 — Experimental Preview](https://github.com/MaybeSobi/TermOS/releases/tag/v0.2.0) |
 | Architecture | x86_64 |
 | Boot mode | UEFI |
+| Virtualization testing | QEMU (automated CI) and VMware Workstation Pro 17 (manual boot test) |
 | Build system | Buildroot 2025.02.19 |
 | Linux kernel | 6.12.27 |
 | Userspace | BusyBox and Python 3 |
@@ -42,6 +43,15 @@ A small x86_64 Linux system built with Buildroot, featuring a Python terminal da
 - Python dashboard and interactive shell
 - TPM unit tests in the required ISO workflow
 - TPM package metadata signature verification and guarded system-root operations (experimental)
+
+### Virtual machine testing
+
+The v0.2.0 ISO has been tested in both environments:
+
+- **QEMU:** automated UEFI boot validation in GitHub Actions.
+- **VMware Workstation Pro 17:** manual UEFI boot test using a newly created virtual machine.
+
+The VMware result is a manual smoke test, not an automated compatibility guarantee. When testing in VMware, attach the ISO as a virtual CD/DVD device and use UEFI firmware.
 
 ### Known limitations
 
