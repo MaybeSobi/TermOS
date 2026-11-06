@@ -94,7 +94,7 @@ The current milestone sequence introduces capabilities progressively:
 
 This is an emphasis map, not an exclusion list or a promise that every feature will be complete for a persona at a particular milestone. Acceptance criteria and validation remain more important than the version label.
 
-## 4. The 0.x / 1.0 agreement
+## 3. The 0.x / 1.0 agreement
 
 ### Through v0.9.x: Buildroot development and experimentation
 
