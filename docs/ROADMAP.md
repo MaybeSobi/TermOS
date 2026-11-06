@@ -22,7 +22,79 @@ Its identity remains **CLI-first, not CLI-only**:
 
 The Control Center is an interface, not the owner of system logic. It should call well-defined system services/APIs and report their results rather than implementing privileged operations itself.
 
-## 2. The 0.x / 1.0 agreement
+## 2. Audience and product principles
+
+### 2.1 Intended audience
+
+TermOS is not designed for an undefined audience of "everyone". Its intended users fall into four overlapping groups:
+
+1. **Terminal Enthusiasts** — people for whom the terminal is a primary working environment. They value shell workflows, system administration through the CLI, resource and service visibility, fast access to tools, scripting, and composable workflows.
+2. **Developers & Builders** — people who continually create and adapt their working environments. They value configurable development environments, profiles, package/tool management, and control over their workspace.
+3. **Linux Power Users** — experienced users who want meaningful control over system behavior. They value modular architecture, choice of desktop environment, and direct management of networking, storage, services, and system configuration.
+4. **Curious Linux Users** — people who want to understand and use Linux more deeply without having to assemble every part of a usable system from scratch. They benefit from a guided TUI installer, an understandable Control Center, a CLI-first experience, and access to a real shell.
+
+These are overlapping personas on a spectrum, not four isolated markets or mutually exclusive user types. One person may fit several groups. Their needs can also conflict, so the project must be explicit about whose needs guide difficult prioritization decisions.
+
+### 2.2 Primary user and prioritization
+
+The primary design user is between the **Linux Power User** and the **Curious Linux User**: someone who wants to understand and control their Linux system, values the terminal, and appreciates a coherent starting point instead of having to assemble every component manually.
+
+The other three audience groups remain important. Naming a primary user is a prioritization tool, not a decision to exclude anyone. When two design choices conflict, prefer the option that gives this primary user understandable, real system control while preserving direct CLI access and extensibility for experienced users.
+
+Early 0.x releases may naturally appeal first to Terminal Enthusiasts and technically curious testers because the foundations arrive before the complete installer and Control Center experience. This is an intentional development sequence, not a change in the long-term audience.
+
+### 2.3 User needs (working user stories)
+
+Use these stories to evaluate whether planned capabilities solve real user needs. Refine them as implementation and testing reveal more detail.
+
+- **Terminal Enthusiast:** "When I manage my system, I want to inspect and control its resources, services, and packages directly from the shell, so I can build fast, repeatable, scriptable workflows."
+- **Developer & Builder:** "When I set up a project or change the kind of work I do, I want configurable tools and reusable profiles, so I can create a consistent environment without rebuilding it manually each time."
+- **Linux Power User:** "When I need to change system behavior, I want clear access to the underlying configuration and service interfaces, so I can make informed decisions instead of being locked into hidden defaults."
+- **Curious Linux User:** "When I install or configure TermOS, I want guided steps and a clear management interface that explains what is happening, so I can learn and use the system without first memorizing every command and configuration file."
+
+### 2.4 Product and interaction principles
+
+The following principles are design constraints for future features, not claims that every capability is already implemented.
+
+1. **CLI First, Not CLI Only.** The shell is a first-class interface. Helpful TUI and optional graphical interfaces may make system capabilities easier to discover, but must not replace or obstruct the shell.
+2. **Scriptable by Design.** System-management capabilities exposed through the Control Center should also be available through documented CLI commands or stable interfaces suitable for automation. Avoid UI-only functionality wherever practical.
+3. **Transparent Over Magical.** Explain what an operation will change. Where practical, the Control Center should show the equivalent command or clearly identify the underlying operation before execution. Do not imply that displaying a command makes it safe; validation, authorization, and confirmation are still required.
+4. **One System, Multiple Interfaces.** The CLI, Control Center, installer, and future interfaces should use shared system services/APIs rather than implementing separate versions of privileged logic. Equivalent actions should have consistent behavior and results.
+5. **Modular by Design.** Keep optional components, profiles, and desktop environments separable. Users should be able to choose a suitable system composition without being forced into one desktop or workflow.
+6. **User Control With Understandable Defaults.** Provide sensible defaults and guided workflows without hiding important decisions or removing the ability to inspect and override supported settings.
+7. **Accessible Without Hiding Linux.** Help newer users discover and understand system capabilities; do not conceal the underlying Linux concepts or prevent advanced users from working directly with them.
+8. **Honest About Capability.** Distinguish implemented, experimental, unavailable, and hardware-dependent functionality. Never display fabricated system data or imply an operation succeeded when it did not.
+
+### 2.5 Control Center and CLI parity
+
+The Control Center is a discoverable interface to TermOS capabilities, not a separate or exclusive way to administer the system.
+
+For each supported management action:
+
+- Provide a documented CLI equivalent or a documented stable system interface that can be used by scripts.
+- Keep the underlying operation in a shared service/API layer; do not duplicate privileged business logic in UI code.
+- Where practical, show the command or explain the exact operation the Control Center will request. If the operation cannot be represented safely as one command, explain the relevant service/API action instead of inventing a misleading command.
+- Validate inputs and permissions consistently regardless of which interface initiates the action.
+- Show meaningful success, failure, and diagnostic information. Do not report success until the backend confirms it.
+- Preserve shell access and avoid requiring the Control Center for routine system use.
+
+This principle lets a newer user learn through guided controls while allowing an experienced user to bypass the interface and automate the same capabilities.
+
+### 2.6 Roadmap alignment with audience needs
+
+The current milestone sequence introduces capabilities progressively:
+
+| Milestone | Main audience emphasis | Why it matters |
+| --- | --- | --- |
+| v0.3.x | Terminal Enthusiasts and early Linux users | Reliable foundations, real system data, TPM, and persistence work |
+| v0.4.x | Curious Linux Users | Guided installation begins to make setup understandable |
+| v0.5.x | All audience groups | Control Center provides discoverable access to system capabilities while preserving CLI parity |
+| v0.6.x | Developers & Builders and modular-system users | Profiles support repeatable, configurable environments |
+| v0.7.x onward | Linux Power Users and all groups | Network, storage, services, settings, compatibility, and security deepen practical control |
+
+This is an emphasis map, not an exclusion list or a promise that every feature will be complete for a persona at a particular milestone. Acceptance criteria and validation remain more important than the version label.
+
+## 3. The 0.x / 1.0 agreement
 
 ### Through v0.9.x: Buildroot development and experimentation
 
