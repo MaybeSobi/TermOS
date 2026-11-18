@@ -33,6 +33,15 @@ jobs:
           sh -n auto/config
           bash -n scripts/*.sh
 
+      - name: Build and inspect the TermOS Debian package
+        run: |
+          ./scripts/build-deb.sh
+          dpkg-deb --info config/packages.chroot/termos_0.3.0~dev1_all.deb
+          mkdir -p /tmp/termos-package-test
+          dpkg-deb --extract config/packages.chroot/termos_0.3.0~dev1_all.deb /tmp/termos-package-test
+          PYTHONPATH=/tmp/termos-package-test/usr/lib/python3/dist-packages python -m termos --version
+          PYTHONPATH=/tmp/termos-package-test/usr/lib/python3/dist-packages python -m termos info
+
       - name: Validate Python package metadata
         run: |
           python -m pip install --no-deps .
