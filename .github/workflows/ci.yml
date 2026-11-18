@@ -1,0 +1,49 @@
+name: TermOS CI
+
+on:
+  push:
+    branches: [main, "rebuild/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate source and project metadata
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate Python source
+        run: |
+          python -m compileall -q src tests
+          PYTHONPATH=src python -m unittest discover -s tests -v
+
+      - name: Validate shell scripts
+        run: |
+          sh -n auto/config
+          bash -n scripts/*.sh
+
+      - name: Build and inspect the TermOS Debian package
+        run: |
+          ./scripts/build-deb.sh
+          dpkg-deb --info config/packages.chroot/termos_0.3.0~dev1_all.deb
+          mkdir -p /tmp/termos-package-test
+          dpkg-deb --extract config/packages.chroot/termos_0.3.0~dev1_all.deb /tmp/termos-package-test
+          PYTHONPATH=/tmp/termos-package-test/usr/lib/python3/dist-packages python -m termos --version
+          PYTHONPATH=/tmp/termos-package-test/usr/lib/python3/dist-packages python -m termos info
+
+      - name: Validate Python package metadata
+        run: |
+          python -m pip install --no-deps .
+          termos --version
+          termos info

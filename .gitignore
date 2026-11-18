@@ -1,33 +1,42 @@
-# Buildroot source and generated output
+# live-build generated state
 /build/
-/src/
-/buildroot
-/downloads/
-/backups/
+/cache/
+/chroot/
+/binary/
+/.build/
+/config/packages.chroot/*.deb
+/*.iso
+/*.iso.sha256
+/auto/config.old
+/config/bootstrap
+/config/binary
+/config/chroot
+/config/common
+/config/source
 
-# Build artifacts and local VM state
-*.iso
-*.img
-*.qcow2
-*.log
-*.tmp
-OVMF_VARS*.fd
-
-# Editor and Python caches
+# Python
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+*.egg-info/
+
+# Rust
+/target/
+**/target/
+
+# VM and logs
+*.qcow2
+*.img
+*.log
+OVMF_VARS*.fd
+
+# Editors and OS
 .vscode/
 .idea/
-
-# TPM repository signing keys: never commit private key material.
-/keys/*private*.pem
-/keys/*private*.key
-/dist/
-
-# Local TPM test and release artifacts
-/packages/
-*.tpk
-/*.tar.gz
-/*.tar.gz.sha256
-*.bak
-.pytest_cache/
+.DS_Store
+Thumbs.db

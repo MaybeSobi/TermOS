@@ -1,0 +1,8 @@
+id: minimal
+name: Minimal CLI
+version: 1
+description: Base TermOS command-line environment without a desktop.
+desktop: none
+packages: []
+services: []
+status: planned

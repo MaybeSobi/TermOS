@@ -1,0 +1,9 @@
+id: xfce
+name: XFCE Desktop
+version: 1
+description: Optional XFCE desktop environment.
+desktop: xfce
+packages:
+  - task-xfce-desktop
+services: []
+status: planned
