@@ -1,0 +1,4 @@
+NAME=TermOS
+VERSION=0.3.0
+GENERATION=debian
+BASE=debian-stable

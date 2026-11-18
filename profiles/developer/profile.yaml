@@ -1,0 +1,12 @@
+id: developer
+name: Developer
+version: 1
+description: Development tools layered on top of another base profile.
+desktop: inherit
+packages:
+  - git
+  - build-essential
+  - python3
+  - python3-venv
+services: []
+status: planned

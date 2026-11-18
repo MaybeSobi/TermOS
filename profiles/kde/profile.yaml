@@ -1,0 +1,9 @@
+id: kde
+name: KDE Plasma Desktop
+version: 1
+description: Optional KDE Plasma desktop environment.
+desktop: kde
+packages:
+  - task-kde-desktop
+services: []
+status: planned
