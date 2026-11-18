@@ -3,6 +3,8 @@
 /cache/
 /chroot/
 /binary/
+/.build/
+/config/packages.chroot/*.deb
 /*.iso
 /*.iso.sha256
 /auto/config.old
