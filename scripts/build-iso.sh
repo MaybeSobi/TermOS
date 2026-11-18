@@ -17,6 +17,7 @@ command -v lb >/dev/null 2>&1 || {
     exit 1
 }
 
+./scripts/build-deb.sh
 lb config
 lb build
 
